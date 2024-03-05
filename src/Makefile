@@ -2,7 +2,7 @@ DEPS := constants.cpp body.cpp model.cpp types.cpp
 DEP_FILES := body.hpp
 ROOT_DEP := `root-config --glibs`
 ROOT_DEP_2 := `root-config --cflags`
-NAME := Project
+NAME := Project.out
 
 
 $(NAME): main.cpp
