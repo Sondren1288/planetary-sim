@@ -28,7 +28,7 @@ body::Body Model::getBodyByName(std::string toFind) {
 }
 
 double Model::iterate() {
-    for (body::Body body : bodies) {
+    for (body::Body & body : bodies) {
         updateBody(body);
     }
     simTime = simTime + deltaT;
@@ -39,7 +39,9 @@ void Model::updateBody(body::Body &body) {
     force totalForce = {0, 0, 0};
 
     for (body::Body &other : bodies) {
-        totalForce = plu(totalForce, body.getAttraction(other));
+        if (body.getName() != other.getName()) {
+            totalForce = plu(totalForce, body.getAttraction(other));
+        }
     }
     body.update(deltaT, totalForce);
 }
