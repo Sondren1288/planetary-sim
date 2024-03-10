@@ -19,19 +19,25 @@ int main() {
     sun.setName("Sun");
     earthLike.setName("Earth");
     
-    double deltaT = 60 * 60 * 24 * 100; // Seconds. Here a day at a time 
+    double deltaT = 60 * 60 * 24 * 100; // Seconds. Here a 100 day at a time 
     // Init model
     model::Model mod = model::Model(deltaT);
     // Add bodies to model
     mod.addBody(sun);
     mod.addBody(earthLike);
 
-    int n_steps = 20000;
-    double simtime[n_steps];
-    double sunx[n_steps];
-    double suny[n_steps];
-    double earthx[n_steps];
-    double earthy[n_steps];
+    // Ensure getBodyByName works
+    std::cout << "Should now print \"Sun\": "
+        << mod.getBodyByName("Sun").getName() 
+        << std::endl;
+
+
+    int n_steps = 2000000;
+    double *simtime = new double[n_steps];
+    double *sunx = new double[n_steps];
+    double *suny = new double[n_steps];
+    double *earthx = new double[n_steps];
+    double *earthy = new double[n_steps];
 
     simtime[0] = 0;
     sunx[0] = 0;
@@ -57,11 +63,11 @@ int main() {
         suny[i] = sun.getPos().y;
         earthx[i] = earthLike.getPos().x;
         earthy[i] = earthLike.getPos().y;
-        std::cout << earthLike.getAcc().x << std::endl;
+        //std::cout << earthLike.getAcc().x << std::endl;
     }
 
-    earthPlot->Draw("P");
-    sunPlot->Draw("SAME P");
+    earthPlot->Draw("PCOL");
+    sunPlot->Draw("SAME PCOL");
     for (int i = 0; i < 10; i++) {
         std::cout << "Sun x; " << sunx[i] << "  Earth x; " << earthx[i] << std::endl; 
     }
