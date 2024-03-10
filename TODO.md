@@ -1,0 +1,1 @@
+Create a timestep decrement when bodies get closer to each other, or add some form of eulerstep to ensure that planets do not launch at the speed of light when approaching too close. Or improve physics model, I guess
