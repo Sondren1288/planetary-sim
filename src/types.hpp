@@ -29,7 +29,7 @@ template <typename Vec3D> Vec3D div(Vec3D current, double divisor) {
     return {
         current.x / divisor, 
         current.y / divisor, 
-        current.y / divisor
+        current.z / divisor
     };
 }
 
