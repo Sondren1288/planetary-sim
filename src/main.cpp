@@ -15,11 +15,11 @@ int main() {
     // The sun
     body::Body sun = body::Body(1.9885 * pow(10, 30), {0, 0, 0});
     // Earth-like body. Mass is kg, distance is km
-    body::Body earthLike = body::Body(5.972168 * pow(10, 24), {149'598'023, 0, 0});
+    body::Body earthLike = body::Body(5.972168 * pow(10, 24), {149'598'023'000, 0, 0}, {1000, 0, 0});
     sun.setName("Sun");
     earthLike.setName("Earth");
     
-    double deltaT = 60 * 60 * 24 * 100; // Seconds. Here a 100 day at a time 
+    double deltaT = 60 * 60; // Seconds. Here an hour at a time 
     // Init model
     model::Model mod = model::Model(deltaT);
     // Add bodies to model
@@ -32,7 +32,7 @@ int main() {
         << std::endl;
 
 
-    int n_steps = 2000000;
+    int n_steps = 20000;
     double *simtime = new double[n_steps];
     double *sunx = new double[n_steps];
     double *suny = new double[n_steps];
@@ -46,29 +46,41 @@ int main() {
     earthy[0] = 0;
 
     double time;
-    TCanvas *c1 = new TCanvas("1", "1", 600, 600);
+    TCanvas *c1 = new TCanvas("Apple", "Bees", 600, 600);
     TGraph2D *sunPlot = new TGraph2D();
     TGraph2D *earthPlot = new TGraph2D();
+    earthPlot->SetTitle("GraphTitle; Pos x; Pos y; Sim time");
 
     std::cout << sunPlot << std::endl;
     std::cout << earthPlot << std::endl;
 
-    for (int i = 1; i < n_steps; i++) {
-        simtime[i] = mod.iterate();
+    for (int i = 0; i < n_steps; i++) {
         sun = mod.getBodyByName("Sun");
         earthLike = mod.getBodyByName("Earth");
+        // Error handling
+        if (earthLike.getPos().x >= 1e+12 || earthLike.getPos().x <= -1e+12) {
+            std::cout << "Planet moving an order of magnitude away" << std::endl;
+            std::cout << "Current position on x-axis: " << earthLike.getPos().x << std::endl;
+            break;
+        }
+        // Add points to plot
         sunPlot->SetPoint(i, sun.getPos().x, sun.getPos().y, simtime[i]);
         earthPlot->SetPoint(i, earthLike.getPos().x, earthLike.getPos().y, simtime[i]);
         sunx[i] = sun.getPos().x;
         suny[i] = sun.getPos().y;
         earthx[i] = earthLike.getPos().x;
         earthy[i] = earthLike.getPos().y;
+        
+        if (i == n_steps) {
+            break;
+        }
+        simtime[i+1] = mod.iterate();
         //std::cout << earthLike.getAcc().x << std::endl;
     }
 
-    earthPlot->Draw("PCOL");
+    earthPlot->Draw("LINE PCOL");
     sunPlot->Draw("SAME PCOL");
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i+=5) {
         std::cout << "Sun x; " << sunx[i] << "  Earth x; " << earthx[i] << std::endl; 
     }
 

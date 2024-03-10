@@ -64,7 +64,7 @@ void Body::update(double timestep, force totalForce) {
     this->vel = {
         vel.x + accStep.x,
         vel.y + accStep.y,
-        vel.z + accStep.z
+        vel.z + accStep.z 
     };
 
 }

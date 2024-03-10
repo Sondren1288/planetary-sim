@@ -2,4 +2,5 @@
 .L body.cpp
 .L model.cpp
 .L types.hpp
+.L main.cpp
 
