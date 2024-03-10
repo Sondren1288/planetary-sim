@@ -28,8 +28,6 @@ Body::Body(double mass, position pos, velocity v, acceleration acc) {
     this->acc = acc;
 }
 
-    // Consider deleting this function
-    // Using update() is better
 
 force Body::getAttraction(Body &other) {
     // Get attraction between this body and another
@@ -54,16 +52,16 @@ force Body::getAttraction(Body &other) {
 void Body::update(double timestep, force totalForce) {
     // Update acceleration first
     force newAcc = div(totalForce, mass);
-    acc = {newAcc.x, newAcc.y, newAcc.z};
+    this->acc = {newAcc.x, newAcc.y, newAcc.z};
     acceleration accStep = mul(acc, timestep);
     velocity velStep = mul(vel, timestep);
 
-    pos = {
+    this->pos = {
         pos.x + velStep.x, 
         pos.y + velStep.y, 
         pos.z + velStep.z
     };
-    vel = {
+    this->vel = {
         vel.x + accStep.x,
         vel.y + accStep.y,
         vel.z + accStep.z
