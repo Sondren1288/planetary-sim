@@ -33,3 +33,5 @@
 
 # Debugging
 *.debug
+# Valgrind
+*vgcore.*
