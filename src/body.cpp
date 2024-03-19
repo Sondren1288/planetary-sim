@@ -69,6 +69,23 @@ void Body::update(double timestep, force totalForce) {
 
 }
 
+position Body::step(double timestep) {
+    // Update acceleration first
+    velocity velStep = mul(vel, timestep);
+
+    position tPos = {
+        pos.x + velStep.x, 
+        pos.y + velStep.y, 
+        pos.z + velStep.z
+    };
+
+    return tPos;
+}
+
+void Body::setPos(position p) {
+    pos = p;
+}
+
 void Body::setName(std::string newName) {
     name = newName;
 }

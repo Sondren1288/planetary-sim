@@ -36,7 +36,12 @@ double Model::iterate() {
 }
 
 void Model::updateBody(body::Body &body) {
+    // Calculate the new position, and then do the the update?
+    // This means the new position has to be calculated before force
     force totalForce = {0, 0, 0};
+    //position curPos = body.getPos();
+    //position newPos = body.step(deltaT);
+    
 
     for (body::Body &other : bodies) {
         if (body.getName() != other.getName()) {
