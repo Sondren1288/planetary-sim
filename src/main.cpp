@@ -48,6 +48,8 @@ int main() {
     earthy[0] = 0;
 
     double time;
+    // TODO update plotting to auto-divide into 4 plots
+    // and have the plotting iterate over a list instead of doing so manually
     TCanvas *c1 = new TCanvas("Apple", "Bees", 6000, 6000);
     c1->Divide(2,2);
     TGraph2D *sunPlot = new TGraph2D();
@@ -90,6 +92,7 @@ int main() {
     for (TObject *obj : *c1->GetListOfPrimitives()) {
         std::cout << obj->GetName() << std::endl;
     }
+    // Uses the name of the canvas to create the pads
     TPad *pad_1 = (TPad*) c1->GetPrimitive("Apple_1");
     TPad *pad_2 = (TPad*) c1->GetPrimitive("Apple_2");
     TPad *pad_3 = (TPad*) c1->GetPrimitive("Apple_3");

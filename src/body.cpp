@@ -12,6 +12,7 @@ Body::Body(double mass, position pos) {
     // Stationary object with position and mass
     this->mass = mass;
     this->pos = pos;
+    this->radius = 0;
 }
 
 Body::Body(double mass, position pos, velocity v) {
@@ -19,6 +20,7 @@ Body::Body(double mass, position pos, velocity v) {
     this->mass = mass;
     this->pos = pos;
     this->vel = v;
+    this->radius = 0;
 }
 
 Body::Body(double mass, position pos, velocity v, acceleration acc) {
@@ -26,6 +28,7 @@ Body::Body(double mass, position pos, velocity v, acceleration acc) {
     this->pos = pos;
     this->vel = v;
     this->acc = acc;
+    this->radius = 0;
 }
 
 
@@ -104,5 +107,11 @@ acceleration Body::getAcc() {
 }
 double Body::getMass() {
     return mass;
+}
+double Body::getRadius() {
+    return radius;
+}
+void Body::setRadius(double newRad) {
+    radius = newRad;
 }
 

@@ -4,9 +4,10 @@
 #include "types.hpp"
 namespace body {
     class Body {
-        private:
+        protected:
             double mass;
             std::string name = "";
+            double radius;
             position pos;
             velocity vel = {0, 0, 0};
             acceleration acc = {0, 0, 0};
@@ -25,6 +26,8 @@ namespace body {
             void update(double timeStep, force totalForce);
             position step(double timestop);
             void setPos(position);
+            double getRadius();
+            void setRadius(double);
     };
 };
 #endif
