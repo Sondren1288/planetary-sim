@@ -23,6 +23,13 @@ Body::Body(double mass, position pos, velocity v) {
     this->radius = 0;
 }
 
+Body::Body(double mass, position pos, velocity v, double radius) {
+    this->mass = mass;
+    this->pos = pos;
+    this->vel = v;
+    this->radius = 0;
+}
+
 Body::Body(double mass, position pos, velocity v, acceleration acc) {
     this->mass = mass;
     this->pos = pos;

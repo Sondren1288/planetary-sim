@@ -4,21 +4,119 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <iterator>
 
 #include "model.hpp"
 #include "body.hpp"
 #include "types.hpp"
 #include "constants.hpp"
 
+std::vector<std::vector<std::string>> readData() {
+    std::ifstream data("planetaryData.txt");
+
+    std::vector<std::vector<std::string>> tmpData;
+    std::vector<std::string> strData;
+
+    bool headerFlag = true;
+    std::string tmp, line, col;
+
+    while (data.good()) {
+        // Clear strData for each iteration
+        strData.clear();
+
+        std::getline(data, line);
+        
+        // Skip header
+        if (headerFlag) {
+            headerFlag = false;
+            continue;
+        }
+
+        std::stringstream sstram(line);
+
+        while (std::getline(sstram, col, ',')) {
+            strData.push_back(col);
+        }
+        if (!strData.empty()) {
+            tmpData.push_back(strData);
+        }
+    }
+    return tmpData;
+}
+
+std::vector<std::vector<double>> transformData(std::vector<std::vector<std::string>> &data) {
+    /*
+     * Transforms the data where the first column is a list of names
+     * into a singular column, where the rest of the data is 
+     * made into another table of doubles
+     */
+    // Man is this something to look at. But it works
+    std::vector<std::vector<std::string>> objectColumn;
+    std::vector<std::vector<double>> dataObject;
+
+    // Iterate over each row (Corresponds to planets)
+    for (std::vector<std::string> column : data) {
+        // Name, mass, aphelion, periphelion, avg orbital vel, radius, eccentricity
+        
+        // Add the name to the objectColumn
+        std::vector<std::string> name = {column[0]};
+        objectColumn.push_back(name);
+
+        // Create empty vector to store doubles
+        // Could have used doubleVec.clear, but
+        // the amount of times this is going to be
+        // run makes this insignificant
+        std::vector<double> doubleVec;
+        // Flag to drop the first column
+        bool dropFlag = true;
+        for (std::string data_ : column) {
+            // Drop the first column
+            if (dropFlag) {
+                dropFlag = false;
+                continue;
+            }
+            // Transform the value into double
+            // and then add it to doubleVec
+            doubleVec.push_back(std::stod(data_));
+
+        }
+        // Add the list of values as a row to
+        // dataObject
+        dataObject.push_back(doubleVec);
+    }
+    // Swap data and objectColumn.
+    // This will make the original vector
+    // change into the one we created
+    data.swap(objectColumn);
+    return dataObject;
+}
+
+
 int main() {
+    std::vector<std::vector<std::string>> tmpData, pNames;
+    tmpData = readData();
+    std::vector<std::vector<double>> planetaryData;
+    planetaryData = transformData(tmpData);
+    pNames = tmpData;
+    // TODO some magic with aphelion and parahelion to
+    // calculate position and velocity at this point
+
+
     // Create a model and add 2 bodies
     // The sun
     body::Body sun = body::Body(1.9885 * pow(10, 30), {0, 0, 0});
+    sun.setRadius(696'340'000);
     // Can also be written as
     //body::Body sun_(1.9885 * pow(10, 30), {0, 0, 0});
     // Earth-like body. Mass is kg, distance is km
     body::Body earthLike = body::Body(5.972168 * pow(10, 24), {149'598'023'000, 0, 0}, {1000, 20000, 0});
+    earthLike.setRadius(6'371'000);
     sun.setName("Sun");
+
     earthLike.setName("Earth");
     
     double deltaT = 60 * 60; // Seconds. Here an hour at a time 
