@@ -15,6 +15,15 @@
 #include "types.hpp"
 #include "constants.hpp"
 
+
+
+struct pWithFunction {
+    std::string name;
+    std::vector<position> posArray;
+    TGraph2D *graph;
+};
+
+
 std::vector<std::vector<std::string>> readData() {
     std::ifstream data("planetaryData.txt");
 
@@ -106,6 +115,35 @@ int main() {
     // calculate position and velocity at this point
 
 
+    // Init drawer here
+    TCanvas *c1 = new TCanvas("Apple", "Bees", 6000, 6000);
+    std::vector<pWithFunction> planetPlotter;
+
+
+    // Init model to be able to add planets
+    double deltaT = 60 * 60; // Seconds. Here an hour at a time 
+    model::Model mod = model::Model(deltaT);
+
+    // These lines are also relatively inefficient, 
+    // but again it is fine, because it only runs at startup
+    for (int row = 0; row < pNames.size(); row++) {
+        // For each row 
+        // mass, aphelion, periphelion, avg orbital vel, radius, eccentricity
+        double mass = planetaryData[row][0];
+        // Currently using perihelion as distance TODO
+        position pos = {planetaryData[row][2], 0, 0};
+        velocity vel = {0, planetaryData[row][3], 0};
+        double radius = planetaryData[row][4];
+
+        // Init body and add to model
+        body::Body bodyToAdd = body::Body(pNames[row][0], mass, pos, vel, radius);
+        mod.addBody(bodyToAdd);
+
+        TGraph2D *curPlot = new TGraph2D();
+        std::vector<position> pos_ = {pos};
+        planetPlotter.push_back({pNames[row][0], pos_, curPlot});
+    }
+
     // Create a model and add 2 bodies
     // The sun
     body::Body sun = body::Body(1.9885 * pow(10, 30), {0, 0, 0});
@@ -119,9 +157,7 @@ int main() {
 
     earthLike.setName("Earth");
     
-    double deltaT = 60 * 60; // Seconds. Here an hour at a time 
     // Init model
-    model::Model mod = model::Model(deltaT);
     // Add bodies to model
     mod.addBody(sun);
     mod.addBody(earthLike);
@@ -148,7 +184,6 @@ int main() {
     double time;
     // TODO update plotting to auto-divide into 4 plots
     // and have the plotting iterate over a list instead of doing so manually
-    TCanvas *c1 = new TCanvas("Apple", "Bees", 6000, 6000);
     c1->Divide(2,2);
     TGraph2D *sunPlot = new TGraph2D();
     TGraph2D *earthPlot = new TGraph2D();
