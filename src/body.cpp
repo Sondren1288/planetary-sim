@@ -23,11 +23,12 @@ Body::Body(double mass, position pos, velocity v) {
     this->radius = 0;
 }
 
-Body::Body(double mass, position pos, velocity v, double radius) {
+Body::Body(std::string name, double mass, position pos, velocity v, double radius) {
     this->mass = mass;
     this->pos = pos;
     this->vel = v;
     this->radius = 0;
+    setName(name);
 }
 
 Body::Body(double mass, position pos, velocity v, acceleration acc) {

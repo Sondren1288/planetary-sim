@@ -15,7 +15,7 @@ namespace body {
         public:
             Body(double mass, position pos);
             Body(double mass, position pos, velocity v);
-            Body(double mass, position pos, velocity v, double radius);
+            Body(std::string name, double mass, position pos, velocity v, double radius);
             Body(double mass, position pos, velocity v, acceleration acc);
             void setName(std::string);
             std::string getName();
