@@ -139,6 +139,51 @@ void initControlPanel(TCanvas *canv) {
     allAfter->Draw();
 }
 
+void drawSingularStepLimit(size_t limit=500) {
+    canv->cd();
+    canv->Clear();
+    view = (TView3D*) TView::CreateView(1, 0, 0);
+    view->SetRange(-249'261'000'000, -249'261'000'000, -1000, 249'261'000'000, 249'261'000'000, 1000);
+    
+    bool first = true;
+    for (pWithFunction &pStruct : planetPlotter) {
+
+        body::Body curBod = mod.getBodyByName(pStruct.name);
+        position p = curBod.getPos();
+
+        // Increase vector
+        if (pStruct.posArray.size() <= limit) {
+            pStruct.posArray.push_back(p);
+        } else {
+            pStruct.posArray.erase(pStruct.posArray.begin(), pStruct.posArray.begin()+1);
+            pStruct.posArray.push_back(p);
+        }
+
+        // Set the points to draw
+        for (int i = 0; i < pStruct.posArray.size(); i++) {
+            std::vector<position> &poses = pStruct.posArray;
+            position tmpP = poses[i];
+            pStruct.graph->SetPoint(i, tmpP.x, tmpP.y, tmpP.z);
+        }
+
+        // Draw the thing
+        if (first) {
+            pStruct.graph->Draw();
+            first = false;
+        } else {
+            pStruct.graph->Draw("SAME");
+        }
+    }
+    mod.iterate();
+    iteration++;
+    if (iteration % 1000 == 0) {
+        std::cout << "Iteration: " << iteration << std::endl;
+    }
+    //canv->SetRealAspectRatio();
+    canv->Modified();
+    canv->Update();
+}
+
 void drawSingularStep() {
     canv->cd();
     canv->Clear();
@@ -174,7 +219,7 @@ void drawStep() {
 }
 
 void drawRealTime() {
-    timer->SetCommand("drawSingularStep()");
+    timer->SetCommand("drawSingularStepLimit()");
     timer->SetTime(20);
     timer->TurnOn();
 }
@@ -239,7 +284,7 @@ int main() {
         //TPolyLine3D *curPlot = new TPolyLine3D();
         //curPlot->SetLineWidth(5);
         curPlot->SetMarkerSize(50);
-        std::vector<position> pos_;
+        std::vector<position> pos_ = {};
         planetPlotter.push_back({pNames[row][0], pos_, curPlot});
     }
 
@@ -300,7 +345,7 @@ int main_() {
         //curPlot->SetLineWidth(5);
         curPlot->SetMarkerSize(50);
         std::vector<position> pos_;
-        planetPlotter.push_back({pNames[row][0], pos_, curPlot});
+        //planetPlotter.push_back({pNames[row][0], pos_, curPlot});
     }
 
     bool sameFlag = false;
