@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -29,11 +30,11 @@
 struct pWithFunction {
     std::string name;
     std::vector<position> posArray;
-    TPolyMarker3D *graph;
+    TPolyLine3D *graph;
 };
 
 
-const int n_steps = 500;
+const int n_steps = 100000;
 // Globals
 std::vector<pWithFunction> planetPlotter;
 // Init model to be able to add planets
@@ -44,6 +45,9 @@ TTimer *timer = new TTimer(0);
 TView3D *view = (TView3D*) TView::CreateView(1, 0, 0);
 int iteration = 0;
 TPad *mainPad = new TPad("PAD", "Pad", 0.01, 0.01, 0.99, 0.99);
+double outer_range = 249'261'000'000;
+double zoom_factor = 1.0;
+int limit = 500;
 
 
 std::vector<std::vector<std::string>> readData() {
@@ -131,19 +135,44 @@ std::vector<std::vector<double>> transformData(std::vector<std::vector<std::stri
 
 void initControlPanel(TCanvas *canv) {
     canv->cd();
-    TButton *step = new TButton("STEP", "drawStep()", 0.1, 0.1, 0.9, 0.3);
-    TButton *realTime = new TButton("REALTIME", "drawRealTime()", 0.1, 0.4, 0.9, 0.6);
-    TButton *allAfter = new TButton("ALL", "drawAllAfter()", 0.1, 0.7, 0.9, 0.9);
+    int layers = 4;
+    float padding = 0.05;
+    float boxSize = 1.0 / layers - padding - padding / layers;
+    std::cout << "Box size: " << boxSize << std::endl;
+    float iterPos = padding + boxSize;
+    // Top == 1.0
+    // Bottom left == 0, 0
+    TButton *zoomIn = new TButton("+", "zoomIn()", 0.1, padding, 0.45, iterPos);
+    TButton *zoomOut = new TButton("-", "zoomOut()", 0.55, padding, 0.9, iterPos);
+    TButton *realTime = new TButton("REALTIME", "drawRealTime()", 0.1, iterPos + padding, 0.9, iterPos * 2);
+    TButton *allAfter = new TButton("ALL", "drawAllAfter()", 0.1, iterPos * 2 + padding, 0.9, iterPos * 3);
+    TButton *step = new TButton("STEP", "drawStep()", 0.1, iterPos * 3 + padding, 0.9, iterPos * 4);
     step->Draw();
     realTime->Draw();
     allAfter->Draw();
+    zoomIn->Draw();
+    zoomOut->Draw();
+}
+void printZoom() {
+    std::cout << "Current zoom level: " << zoom_factor << std::endl;
+}
+
+void zoomIn() {
+    zoom_factor = zoom_factor * 0.95;
+    printZoom();
+}
+
+void zoomOut() {
+    zoom_factor = zoom_factor * 1.05;
+    printZoom();
 }
 
 void drawSingularStepLimit(size_t limit=500) {
     canv->cd();
     canv->Clear();
     view = (TView3D*) TView::CreateView(1, 0, 0);
-    view->SetRange(-249'261'000'000, -249'261'000'000, -1000, 249'261'000'000, 249'261'000'000, 1000);
+    double cur_zoom = outer_range * zoom_factor;
+    view->SetRange(-cur_zoom, -cur_zoom, -1000, cur_zoom, cur_zoom, 1000);
     
     bool first = true;
     for (pWithFunction &pStruct : planetPlotter) {
@@ -151,12 +180,22 @@ void drawSingularStepLimit(size_t limit=500) {
         body::Body curBod = mod.getBodyByName(pStruct.name);
         position p = curBod.getPos();
 
+        TPolyMarker3D *plt = new TPolyMarker3D();
+        plt->SetPoint(0, p.x, p.y, p.z);
+        plt->SetPoint(1, p.x, p.y, p.z);
+        plt->SetMarkerStyle(20);
+        //plt->SetMarkerStyle(53+(18*2));
+        plt->SetMarkerSize(2.3);
+        plt->Draw("");
+        first = false;
+
         // Increase vector
         if (pStruct.posArray.size() <= limit) {
             pStruct.posArray.push_back(p);
         } else {
-            pStruct.posArray.erase(pStruct.posArray.begin(), pStruct.posArray.begin()+1);
+            pStruct.posArray.erase(pStruct.posArray.begin(), pStruct.posArray.end() - limit);
             pStruct.posArray.push_back(p);
+            pStruct.graph->SetPolyLine(limit);
         }
 
         // Set the points to draw
@@ -215,32 +254,43 @@ void drawSingularStep() {
 
 void drawStep() {
     timer->TurnOff();
-    drawSingularStep();
+    drawSingularStepLimit(limit);
 }
 
 void drawRealTime() {
-    timer->SetCommand("drawSingularStepLimit()");
-    timer->SetTime(20);
+    std::string tmp = "drawSingularStepLimit(" + std::to_string(limit) + ")";
+    char *tmp_c = new char[tmp.length() + 1];
+    std::strcpy(tmp_c, tmp.c_str());
+    timer->SetCommand(tmp_c);
+    timer->SetTime(10);
     timer->TurnOn();
 }
 
 void drawAllAfter() {
     timer->TurnOff();
     if (iteration >= n_steps) {
-        for (pWithFunction pStruct : planetPlotter) {
-            pStruct.graph->Draw("SAME");
-        }
+        return;
     } else {
         while (iteration < n_steps) {
-            for (pWithFunction pStruct : planetPlotter) {
+            for (pWithFunction &pStruct : planetPlotter) {
                 body::Body curBod = mod.getBodyByName(pStruct.name);
                 position p = curBod.getPos();
-                pStruct.graph->SetPoint(iteration, p.x, p.y, p.z);
+                //pStruct.graph->SetPoint(iteration, p.x, p.y, p.z);
+                pStruct.posArray.push_back(p);
+                mod.iterate();
+                iteration++;
+                if (iteration % 1000 == 0) {
+                    std::cout << "Iteration " << iteration << std::endl;
+                }
             }
         }
-        for (pWithFunction pStruct : planetPlotter) {
-            pStruct.graph->Draw("SAME");
+        for (pWithFunction &pStruct : planetPlotter) {
+            for (int i = 0; i < pStruct.posArray.size(); i++) {
+                position p = pStruct.posArray[i];
+                pStruct.graph->SetPoint(i, p.x, p.y, p.z);
+            }
         }
+        drawSingularStepLimit(iteration);
     }
     //drawRemainder();
 }
@@ -280,10 +330,12 @@ int main() {
         body::Body bodyToAdd = body::Body(pNames[row][0], mass, pos, vel, radius);
         mod.addBody(bodyToAdd);
 
-        TPolyMarker3D *curPlot = new TPolyMarker3D();
-        //TPolyLine3D *curPlot = new TPolyLine3D();
-        //curPlot->SetLineWidth(5);
-        curPlot->SetMarkerSize(50);
+        //TPolyMarker3D *curPlot = new TPolyMarker3D();
+        TPolyLine3D *curPlot = new TPolyLine3D();
+        curPlot->SetLineWidth(8);
+        curPlot->SetLineStyle(1);
+        //curPlot->SetMarkerSize(50000);
+        //curPlot->SetMarkerStyle(50+(18*3));
         std::vector<position> pos_ = {};
         planetPlotter.push_back({pNames[row][0], pos_, curPlot});
     }
@@ -291,7 +343,8 @@ int main() {
     canv->cd();
     //mainPad->SetCanvas(canv);
     //canv->SetPadSave(mainPad);
-    view->SetRange(-249'261'000'000, -249'261'000'000, -1000, 249'261'000'000, 249'261'000'000, 1000);
+    //view->SetRange(-249'261'000'0, -249'261'000'0, -1000, 249'261'000'0, 249'261'000'0, 1000);
+    //view->SetRange(-249'261'000'000, -249'261'000'000, -1000, 249'261'000'000, 249'261'000'000, 1000);
     view->ShowAxis();
     for (int i = 0; i < n_steps; i++) {
         drawRealTime();
