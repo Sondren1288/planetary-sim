@@ -134,19 +134,17 @@ void initControlPanel(TCanvas *canv) {
     TButton *step = new TButton("STEP", "drawStep()", 0.1, 0.1, 0.9, 0.3);
     TButton *realTime = new TButton("REALTIME", "drawRealTime()", 0.1, 0.4, 0.9, 0.6);
     TButton *allAfter = new TButton("ALL", "drawAllAfter()", 0.1, 0.7, 0.9, 0.9);
-    TButton *tester = new TButton("TEST", "test()", 0.1, 0.9, 0.9, 1.0);
     step->Draw();
     realTime->Draw();
     allAfter->Draw();
-    tester->Draw();
-}
-void test() {
-    std::cout << "Test" << std::endl;
 }
 
 void drawSingularStep() {
     canv->cd();
     canv->Clear();
+    view = (TView3D*) TView::CreateView(1, 0, 0);
+    view->SetRange(-249'261'000'000, -249'261'000'000, -1000, 249'261'000'000, 249'261'000'000, 1000);
+    //view->ShowAxis();
     //mainPad->Clear();
     bool first = true;
     for (pWithFunction pStruct : planetPlotter) {
@@ -162,6 +160,9 @@ void drawSingularStep() {
     }
     mod.iterate();
     iteration++;
+    if (iteration % 1000 == 0) {
+        std::cout << "Iteration: " << iteration << std::endl;
+    }
     //canv->SetRealAspectRatio();
     canv->Modified();
     canv->Update();
@@ -174,7 +175,7 @@ void drawStep() {
 
 void drawRealTime() {
     timer->SetCommand("drawSingularStep()");
-    timer->SetTime(2);
+    timer->SetTime(20);
     timer->TurnOn();
 }
 

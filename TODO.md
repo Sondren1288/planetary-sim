@@ -12,3 +12,7 @@ Instead of euler, use verlet.
 Should it prove necessary, then a eulerstep could be considered.
 Create a timestep decrement when bodies get closer to each other, or add some form of eulerstep to ensure that planets do not launch at the speed of light when approaching too close. Or improve physics model, I guess
 
+
+
+### Notes to self
+Slows down significantly when it reaches 2000+ iterations. 1000 is still manageable, but drawing 2k+ seems to be unnessesary
