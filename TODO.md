@@ -1,3 +1,9 @@
+## Priority 
+* Add increase / decrease in tail-length
+* Accurately calculate orbit using aphelion and such, to get proper speed and orbit of planets.
+* Change physics model from simple newtonian to Verlet
+* Add the remaining planets of the solar system
+
 Send message with head of title
 
 Add more planets in the solar system
