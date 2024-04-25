@@ -7,6 +7,7 @@
 #include <TButton.h>
 #include <TTimer.h>
 #include <TPad.h>
+#include <TMath.h>
 
 #include <cmath>
 #include <cstdio>
@@ -95,11 +96,12 @@ std::vector<std::vector<double>> transformData(std::vector<std::vector<std::stri
 
     // Iterate over each row (Corresponds to planets)
     for (std::vector<std::string> column : data) {
-        // Name, mass, aphelion, periphelion, avg orbital vel, radius, eccentricity
+        // Name, mass, aphelion, periphelion, avg orbital vel, radius, eccentricity, dependant body
         
-        // Add the name to the objectColumn
-        std::vector<std::string> name = {column[0]};
+        // Add the name and dependent body to the objectColumn
+        std::vector<std::string> name = {column[0], column[7]};
         objectColumn.push_back(name);
+        
 
         // Create empty vector to store doubles
         // Could have used doubleVec.clear, but
@@ -108,10 +110,15 @@ std::vector<std::vector<double>> transformData(std::vector<std::vector<std::stri
         std::vector<double> doubleVec;
         // Flag to drop the first column
         bool dropFlag = true;
+        int counter = -1;
         for (std::string data_ : column) {
             // Drop the first column
+            counter++;
             if (dropFlag) {
                 dropFlag = false;
+                continue;
+            }
+            if (counter == 7) {
                 continue;
             }
             // Transform the value into double
@@ -307,6 +314,7 @@ int main() {
     tmpData = readData();
     std::vector<std::vector<double>> planetaryData;
     planetaryData = transformData(tmpData);
+    // pNames contain the name of the planet and the body it depends on
     pNames = tmpData;
     // TODO some magic with aphelion and parahelion to
     // calculate position and velocity at this point
@@ -321,11 +329,32 @@ int main() {
         // For each row 
         // mass, aphelion, periphelion, avg orbital vel, radius, eccentricity
         double mass = planetaryData[row][0];
-        // Currently using perihelion as distance TODO
-        position pos = {planetaryData[row][2], 0, 0};
-        velocity vel = {0, planetaryData[row][3], 0};
+        // Currently using aphelion as distance 
+        // Will be using the aphelion and finding the minumum velocity
+        // that a planet has in its orbit
+        position pos = {planetaryData[row][1], 0, 0};
         double radius = planetaryData[row][4];
 
+        // To find min velocity, we use the formulae listed at
+        // https://en.wikipedia.org/wiki/Apsis#Mathematical_formulae
+        // v_per = sqrt[ (1-e)mu / (1+e)a ]
+        // a = (r_per + r_ap) / 2 // semi major axis
+        // mu = G(m_1 + m_2) // mass_1 and mass_2, so this does not work for the sun
+        // e: eccentricity. Given in data
+        velocity vel;
+        std::string dependant_body = pNames[row][1];
+        if (dependant_body == "none") {
+            vel = {0, planetaryData[row][3], 0};
+        } else {
+            double eccentricity = planetaryData[row][5];
+            double dependant_mass = mod.getBodyByName(dependant_body).getMass();
+            double semi_major = (planetaryData[row][2] + planetaryData[row][1]) / 2.0;
+            double gravitational_parameter = GRAVITATIONAL * (mass + dependant_mass);
+            double vel_min = sqrt( (1-eccentricity) * gravitational_parameter  /  ( (1+eccentricity) * semi_major ) );
+        
+            std::cout << "Planet: " << pNames[row][0] << " minimum velocity: " << vel_min << std::endl;
+            vel = {0, vel_min, 0};
+        }
         // Init body and add to model
         body::Body bodyToAdd = body::Body(pNames[row][0], mass, pos, vel, radius);
         mod.addBody(bodyToAdd);
