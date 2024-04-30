@@ -80,6 +80,26 @@ void Body::update(double timestep, force totalForce) {
 
 }
 
+void Body::updatePos(double timestep) {
+    pos = {
+        pos.x + vel.x * timestep + acc.x * (timestep * timestep * 0.5),
+        pos.y + vel.y * timestep + acc.y * (timestep * timestep * 0.5),
+        pos.z + vel.z * timestep + acc.z * (timestep * timestep * 0.5)
+    };
+}
+
+void Body::updateVerlet(double timestep, force totalForce) {
+    // x(t + dt) = x(t) + v(t)dt + 1/2 a(t)dt^2
+    // v(t + dt) = v(t) + dt(a(t) + a(t + dt))/2 
+    force newAcc = div(totalForce, mass);
+    vel = {
+        vel.x + (acc.x + newAcc.x) * timestep * 0.5,
+        vel.y + (acc.y + newAcc.y) * timestep * 0.5,
+        vel.z + (acc.z + newAcc.z) * timestep * 0.5
+    };
+    acc = {newAcc.x, newAcc.y, newAcc.z};
+}
+
 position Body::step(double timestep) {
     // Update acceleration first
     velocity velStep = mul(vel, timestep);

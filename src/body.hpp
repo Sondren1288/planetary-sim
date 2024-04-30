@@ -25,6 +25,8 @@ namespace body {
             double getMass();
             force getAttraction(Body &other);
             void update(double timeStep, force totalForce);
+            void updatePos(double timestep);
+            void updateVerlet(double timeStep, force totalForce);
             position step(double timestop);
             void setPos(position);
             double getRadius();

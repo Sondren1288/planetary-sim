@@ -42,12 +42,14 @@ void Model::updateBody(body::Body &body) {
     //position curPos = body.getPos();
     //position newPos = body.step(deltaT);
     
+    body.updatePos(deltaT);
 
     for (body::Body &other : bodies) {
         if (body.getName() != other.getName()) {
             totalForce = plu(totalForce, body.getAttraction(other));
         }
     }
-    body.update(deltaT, totalForce);
+    //body.update(deltaT, totalForce);
+    body.updateVerlet(deltaT, totalForce);
 }
 
