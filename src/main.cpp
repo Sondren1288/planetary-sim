@@ -1,4 +1,5 @@
 #include <TCanvas.h>
+#include <TGFrame.h>
 #include <TMultiGraph.h>
 #include <TGraph2D.h>
 #include <TPolyMarker3D.h>
@@ -8,6 +9,9 @@
 #include <TTimer.h>
 #include <TPad.h>
 #include <TMath.h>
+#include <TApplication.h>
+#include <TGButton.h>
+#include <TRootCanvas.h>
 
 #include <cmath>
 #include <cstdio>
@@ -35,6 +39,7 @@ struct pWithFunction {
 };
 
 
+
 const int n_steps = 100000;
 // Globals
 std::vector<pWithFunction> planetPlotter;
@@ -48,7 +53,8 @@ int iteration = 0;
 TPad *mainPad = new TPad("PAD", "Pad", 0.01, 0.01, 0.99, 0.99);
 double outer_range = 249'261'000'000;
 double zoom_factor = 1.0;
-int limit = 500;
+int limit = 5000;
+TApplication *app;
 
 
 std::vector<std::vector<std::string>> readData() {
@@ -153,6 +159,10 @@ void initControlPanel(TCanvas *canv) {
     TButton *zoomOut = new TButton("-", "zoomOut()", 0.55, padding, 0.9, iterPos);
     TButton *realTime = new TButton("REALTIME", "drawRealTime()", 0.1, iterPos + padding, 0.9, iterPos * 2);
     TButton *allAfter = new TButton("ALL", "drawAllAfter()", 0.1, iterPos * 2 + padding, 0.9, iterPos * 3);
+    
+    // ??
+    TGTextButton *allAfter_ = new TGTextButton();
+    
     TButton *step = new TButton("STEP", "drawStep()", 0.1, iterPos * 3 + padding, 0.9, iterPos * 4);
     step->Draw();
     realTime->Draw();
@@ -262,6 +272,7 @@ void drawSingularStep() {
 void drawStep() {
     timer->TurnOff();
     drawSingularStepLimit(limit);
+    view->ShowAxis();
 }
 
 void drawRealTime() {
@@ -298,6 +309,7 @@ void drawAllAfter() {
             }
         }
         drawSingularStepLimit(iteration);
+        view->ShowAxis();
     }
     //drawRemainder();
 }
@@ -309,7 +321,15 @@ void update(model::Model model) {
     model.iterate();
 }
 
-int main() {
+int main(int argc, char **argv) {
+
+    app = new TApplication("Orbitals", &argc, argv);
+
+    canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
+    timer = new TTimer(0);
+    view = (TView3D*) TView::CreateView(1, 0, 0);
+    mainPad = new TPad("PAD", "Pad", 0.01, 0.01, 0.99, 0.99);
+
     std::vector<std::vector<std::string>> tmpData, pNames;
     tmpData = readData();
     std::vector<std::vector<double>> planetaryData;
@@ -354,6 +374,7 @@ int main() {
         
             std::cout << "Planet: " << pNames[row][0] << " minimum velocity: " << vel_min << std::endl;
             vel = {0, vel_min, 0};
+            std::cout << "Position: " << pos.x << " " << pos.y << " " << pos.z << std::endl;
         }
         // Init body and add to model
         body::Body bodyToAdd = body::Body(pNames[row][0], mass, pos, vel, radius);
@@ -375,8 +396,18 @@ int main() {
     //view->SetRange(-249'261'000'0, -249'261'000'0, -1000, 249'261'000'0, 249'261'000'0, 1000);
     //view->SetRange(-249'261'000'000, -249'261'000'000, -1000, 249'261'000'000, 249'261'000'000, 1000);
     view->ShowAxis();
-    for (int i = 0; i < n_steps; i++) {
-        drawRealTime();
+    drawStep();
+
+    TRootCanvas *rc = (TRootCanvas*) canv->GetCanvasImp();
+    rc->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
+    
+    app->Run();
+
+    std::cout << "Running, q to quit" << std::endl;
+    std::string input;
+    std::cin >> input;
+    while ("q" != input && "Q" != input) {
+        std::cin >> input;
     }
 
     return 0;
