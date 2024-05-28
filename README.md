@@ -1,10 +1,18 @@
 # planetary-sim
 Simulation of objects with mass in a 3 dimensional setting.
 
-### Running
-The simplest way is to cat the `src/rootLoader` file to a clipboard, and paste the resulting into ROOT, without sanitizing. 
-This makes ROOT load all the files, in the correct order, and you don't have to `.L` each file manually.
-Then, still in ROOT, run the `main` function by typing
+### Building
+Building the project requires ROOT and GNU Make.
+Simply change directory to `src` and run make; the default should generate an executable `Project.out`.
+This file can be run directly.
+It also generates a `libRootLib.so` file.
+This file can be loaded into ROOT, and then run with `runner()` command.
+
+
+### Interactive environment
+There is a file in the `src` directory called `rootLoader`.
+To easily load all classes and functions into ROOT, cat-ing this file, or copying it to clipboard in some other way, and then pasting it into ROOT is the easiest way to get all classes and functions up and running in a easy way.
+
 ```
 main()
 ```
