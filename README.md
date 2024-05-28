@@ -6,7 +6,12 @@ Building the project requires ROOT and GNU Make.
 Simply change directory to `src` and run make; the default should generate an executable `Project.out`.
 This file can be run directly.
 It also generates a `libRootLib.so` file.
-This file can be loaded into ROOT, and then run with `runner()` command.
+This file can be loaded into ROOT, and then run with `runner()` command, or by creating a variable of the `Main` class, and running `m.main`.
+
+```cpp
+Main m = Main();
+m.main();
+```
 
 
 ### Interactive environment
