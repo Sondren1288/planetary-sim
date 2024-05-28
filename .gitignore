@@ -39,4 +39,5 @@
 # Generated files
 *.png
 *.pcm
+*.cxx
 
