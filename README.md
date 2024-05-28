@@ -12,8 +12,3 @@ This file can be loaded into ROOT, and then run with `runner()` command.
 ### Interactive environment
 There is a file in the `src` directory called `rootLoader`.
 To easily load all classes and functions into ROOT, cat-ing this file, or copying it to clipboard in some other way, and then pasting it into ROOT is the easiest way to get all classes and functions up and running in a easy way.
-
-```
-main()
-```
-.
