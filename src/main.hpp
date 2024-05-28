@@ -16,22 +16,13 @@
 #include <TGButton.h>
 #include <TRootCanvas.h>
 
-#include <cmath>
 #include <cstdio>
 #include <cstring>
-#include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
-#include <fstream>
-#include <chrono>
-#include <thread>
-#include <iterator>
 
 #include "model.hpp"
-#include "body.hpp"
 #include "types.hpp"
-#include "constants.hpp"
 
 struct pWithFunction {
     std::string name;
@@ -41,7 +32,6 @@ struct pWithFunction {
 
 class Main {
         static double deltaT;
-        static model::Model mod; // = model::Model(deltaT);
         //TApplication app;
         static TApplication app;// = TApplication("Orbitals", 0, 0);
         static int n_steps;
@@ -54,7 +44,9 @@ class Main {
         static double outer_range;
         static double zoom_factor;
         static int limit;
+
     public:
+        static model::Model mod; // = model::Model(deltaT);
 
         Main();
         // Data input
