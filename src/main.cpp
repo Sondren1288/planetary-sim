@@ -21,43 +21,36 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include <chrono>
-#include <thread>
-#include <iterator>
 
 #include "model.hpp"
 #include "body.hpp"
 #include "types.hpp"
 #include "constants.hpp"
+#include "main.hpp"
 
-
-
-struct pWithFunction {
-    std::string name;
-    std::vector<position> posArray;
-    TPolyLine3D *graph;
-};
-
-
-
-const int n_steps = 100000;
+double Main::deltaT = (60 * 60) * 6;
+model::Model Main::mod = model::Model(Main::deltaT);
+int Main::n_steps = 100000;
 // Globals
-std::vector<pWithFunction> planetPlotter;
 // Init model to be able to add planets
-double deltaT = (60 * 60) * 6; // Seconds. Here an hour at a time * 6 
-model::Model mod = model::Model(deltaT);
-TCanvas *canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
-TTimer *timer = new TTimer(0);
-TView3D *view = (TView3D*) TView::CreateView(1, 0, 0);
-int iteration = 0;
-TPad *mainPad = new TPad("PAD", "Pad", 0.01, 0.01, 0.99, 0.99);
-double outer_range = 249'261'000'000;
-double zoom_factor = 1.0;
-int limit = 5000;
-TApplication *app;
+TCanvas *Main::canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
+TTimer *Main::timer = new TTimer(0);
+TView3D *Main::view = (TView3D*) TView::CreateView(1, 0, 0);
+int Main::iteration = 0;
+double Main::outer_range = 249'261'000'000;
+double Main::zoom_factor = 1.0;
+int Main::limit = 5000;
+std::vector<pWithFunction> Main::planetPlotter = {};
+TApplication Main::app = TApplication("Orbitals", 0, 0);
 
+Main::Main() {
+    // app = TApplication("Orbitals", 0, 0);
+    // Globals
+    // Init model to be able to add planets
+    mainPad = new TPad("PAD", "Pad", 0.01, 0.01, 0.99, 0.99);
+}
 
-std::vector<std::vector<std::string>> readData() {
+std::vector<std::vector<std::string>> Main::readData() {
     std::ifstream data("planetaryData.csv");
 
     std::vector<std::vector<std::string>> tmpData;
@@ -90,7 +83,7 @@ std::vector<std::vector<std::string>> readData() {
     return tmpData;
 }
 
-std::vector<std::vector<double>> transformData(std::vector<std::vector<std::string>> &data) {
+std::vector<std::vector<double>> Main::transformData(std::vector<std::vector<std::string>> &data) {
     /*
      * Transforms the data where the first column is a list of names
      * into a singular column, where the rest of the data is 
@@ -146,7 +139,7 @@ std::vector<std::vector<double>> transformData(std::vector<std::vector<std::stri
 
 
 
-void initControlPanel(TCanvas *canv) {
+void Main::initControlPanel(TCanvas *canv) {
     canv->cd();
     int layers = 4;
     float padding = 0.05;
@@ -155,36 +148,37 @@ void initControlPanel(TCanvas *canv) {
     float iterPos = padding + boxSize;
     // Top == 1.0
     // Bottom left == 0, 0
-    TButton *zoomIn = new TButton("+", "zoomIn()", 0.1, padding, 0.45, iterPos);
-    TButton *zoomOut = new TButton("-", "zoomOut()", 0.55, padding, 0.9, iterPos);
-    TButton *realTime = new TButton("REALTIME", "drawRealTime()", 0.1, iterPos + padding, 0.9, iterPos * 2);
-    TButton *allAfter = new TButton("ALL", "drawAllAfter()", 0.1, iterPos * 2 + padding, 0.9, iterPos * 3);
+    TButton *zoomIn = new TButton("+", "Main::zoomIn()", 0.1, padding, 0.45, iterPos);
+    TButton *zoomOut = new TButton("-", "Main::zoomOut()", 0.55, padding, 0.9, iterPos);
+    TButton *realTime = new TButton("REALTIME", "Main::drawRealTime()", 0.1, iterPos + padding, 0.9, iterPos * 2);
+    TButton *allAfter = new TButton("ALL", "Main::drawAllAfter()", 0.1, iterPos * 2 + padding, 0.9, iterPos * 3);
     
     // ??
     TGTextButton *allAfter_ = new TGTextButton();
     
-    TButton *step = new TButton("STEP", "drawStep()", 0.1, iterPos * 3 + padding, 0.9, iterPos * 4);
+    TButton *step = new TButton("STEP", "Main::drawStep()", 0.1, iterPos * 3 + padding, 0.9, iterPos * 4);
     step->Draw();
     realTime->Draw();
     allAfter->Draw();
     zoomIn->Draw();
     zoomOut->Draw();
 }
-void printZoom() {
+void Main::printZoom() {
     std::cout << "Current zoom level: " << zoom_factor << std::endl;
 }
 
-void zoomIn() {
+
+void Main::zoomIn() {
     zoom_factor = zoom_factor * 0.95;
     printZoom();
 }
 
-void zoomOut() {
+void Main::zoomOut() {
     zoom_factor = zoom_factor * 1.05;
     printZoom();
 }
 
-void drawSingularStepLimit(size_t limit=500) {
+void Main::drawSingularStepLimit(size_t limit=500) {
     canv->cd();
     canv->Clear();
     view = (TView3D*) TView::CreateView(1, 0, 0);
@@ -240,7 +234,7 @@ void drawSingularStepLimit(size_t limit=500) {
     canv->Update();
 }
 
-void drawSingularStep() {
+void Main::drawSingularStep() {
     canv->cd();
     canv->Clear();
     view = (TView3D*) TView::CreateView(1, 0, 0);
@@ -269,14 +263,14 @@ void drawSingularStep() {
     canv->Update();
 }
 
-void drawStep() {
+void Main::drawStep() {
     timer->TurnOff();
     drawSingularStepLimit(limit);
     view->ShowAxis();
 }
 
-void drawRealTime() {
-    std::string tmp = "drawSingularStepLimit(" + std::to_string(limit) + ")";
+void Main::drawRealTime() {
+    std::string tmp = "Main::drawSingularStepLimit(" + std::to_string(limit) + ")";
     char *tmp_c = new char[tmp.length() + 1];
     std::strcpy(tmp_c, tmp.c_str());
     timer->SetCommand(tmp_c);
@@ -284,7 +278,7 @@ void drawRealTime() {
     timer->TurnOn();
 }
 
-void drawAllAfter() {
+void Main::drawAllAfter() {
     timer->TurnOff();
     if (iteration >= n_steps) {
         return;
@@ -321,11 +315,10 @@ void update(model::Model model) {
     model.iterate();
 }
 
-int main(int argc, char **argv) {
+int Main::main() {
 
-    app = new TApplication("Orbitals", &argc, argv);
 
-    canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
+    //canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
     timer = new TTimer(0);
     view = (TView3D*) TView::CreateView(1, 0, 0);
     mainPad = new TPad("PAD", "Pad", 0.01, 0.01, 0.99, 0.99);
@@ -401,7 +394,7 @@ int main(int argc, char **argv) {
     TRootCanvas *rc = (TRootCanvas*) canv->GetCanvasImp();
     rc->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
     
-    app->Run();
+    app.Run();
 
     std::cout << "Running, q to quit" << std::endl;
     std::string input;
@@ -413,191 +406,12 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-int main_() {
-    std::vector<std::vector<std::string>> tmpData, pNames;
-    tmpData = readData();
-    std::vector<std::vector<double>> planetaryData;
-    planetaryData = transformData(tmpData);
-    pNames = tmpData;
-    // TODO some magic with aphelion and parahelion to
-    // calculate position and velocity at this point
-    // Init drawer here
-    TCanvas *c1 = new TCanvas("Apple", "Bees", 6000, 6000);
-    TCanvas *c2 = new TCanvas("Some", "Plot", 1500, 1500); 
+void runner() {
+    Main program = Main();
+    program.main();
+}
 
-    // Controls and timer
-    TCanvas *controls = new TCanvas("CONTROLS", "Controls");
-
-    TMultiGraph *mg = new TMultiGraph();
-    c1->Divide(2,2);
-    // Uses the name of the canvas to create the pads
-    TPad *pad_1 = (TPad*) c1->GetPrimitive("Apple_1");
-    TPad *pad_2 = (TPad*) c1->GetPrimitive("Apple_2");
-    TPad *pad_3 = (TPad*) c1->GetPrimitive("Apple_3");
-    TPad *pad_4 = (TPad*) c1->GetPrimitive("Apple_4");
-
-
-    // These lines are also relatively inefficient, 
-    // but again it is fine, because it only runs at startup
-    for (int row = 0; row < pNames.size(); row++) {
-
-        // For each row 
-        // mass, aphelion, periphelion, avg orbital vel, radius, eccentricity
-        double mass = planetaryData[row][0];
-        // Currently using perihelion as distance TODO
-        position pos = {planetaryData[row][2], 0, 0};
-        velocity vel = {0, planetaryData[row][3], 0};
-        double radius = planetaryData[row][4];
-
-        // Init body and add to model
-        body::Body bodyToAdd = body::Body(pNames[row][0], mass, pos, vel, radius);
-        mod.addBody(bodyToAdd);
-
-        TPolyMarker3D *curPlot = new TPolyMarker3D();
-        //TPolyLine3D *curPlot = new TPolyLine3D();
-        //curPlot->SetLineWidth(5);
-        curPlot->SetMarkerSize(50);
-        std::vector<position> pos_;
-        //planetPlotter.push_back({pNames[row][0], pos_, curPlot});
-    }
-
-    bool sameFlag = false;
-    c2->cd();
-    // Create 3D view
-    TView3D *view = (TView3D*) TView::CreateView(1);
-    view->SetRange(-249'261'000'000, -249'261'000'000, -1000, 249'261'000'000, 249'261'000'000, 1000);
-    view->ShowAxis();
-
-
-    std::cout << planetPlotter.size() << std::endl;
-    for (int step = 0; step < n_steps; step++) {
-
-        for (pWithFunction pStruct : planetPlotter) {
-            std::cout << "Iteration: " << step << std::endl;
-            body::Body curBod = mod.getBodyByName(pStruct.name);
-            position p = curBod.getPos();
-            pStruct.graph->SetPoint(step, p.x, p.y, p.z);
-            if (sameFlag) {
-                pStruct.graph->Draw("SAME");
-            } else {
-                pStruct.graph->Draw("");
-                sameFlag = true;
-            }
-        }
-        mod.iterate();
-        c2->Modified();
-        c2->Update();
-        //std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    
-    }
-    sameFlag = false;
-    for (pWithFunction pStruct : planetPlotter) {
-        //mg->Add(pStruct.graph, "pl");
-        if (sameFlag) {
-            pStruct.graph->Draw("SAME");
-        } else {
-            pStruct.graph->Draw();
-        }
-        std::cout << pStruct.graph << std::endl;
-    }
-    c2->Modified();
-    c2->Update();
-
-    return 0;
-    c1->cd();
-
-    // Create a model and add 2 bodies
-    // The sun
-    body::Body sun = body::Body(1.9885 * pow(10, 30), {0, 0, 0});
-    sun.setRadius(696'340'000);
-    // Can also be written as
-    //body::Body sun_(1.9885 * pow(10, 30), {0, 0, 0});
-    // Earth-like body. Mass is kg, distance is km
-    body::Body earthLike = body::Body(5.972168 * pow(10, 24), {149'598'023'000, 0, 0}, {1000, 20000, 0});
-    earthLike.setRadius(6'371'000);
-    sun.setName("Sun");
-
-    earthLike.setName("Earth");
-    
-    // Init model
-    // Add bodies to model
-    mod.addBody(sun);
-    mod.addBody(earthLike);
-
-    // Ensure getBodyByName works
-    std::cout << "Should now print \"Sun\": "
-        << mod.getBodyByName("Sun").getName() 
-        << std::endl;
-
-
-    int n_steps = 20000;
-    double *simtime = new double[n_steps];
-    double *sunx = new double[n_steps];
-    double *suny = new double[n_steps];
-    double *earthx = new double[n_steps];
-    double *earthy = new double[n_steps];
-
-    simtime[0] = 0;
-    sunx[0] = 0;
-    suny[0] = 0;
-    earthx[0] = earthLike.getPos().x;
-    earthy[0] = 0;
-
-    double time;
-    // TODO update plotting to auto-divide into 4 plots
-    // and have the plotting iterate over a list instead of doing so manually
-    TGraph2D *sunPlot = new TGraph2D();
-    TGraph2D *earthPlot = new TGraph2D();
-    TGraph2D *sunPlot21 = new TGraph2D();
-    TGraph2D *earthPlot21 = new TGraph2D();
-    earthPlot->SetTitle("GraphTitle; Pos x; Pos y; Sim time");
-
-    std::cout << sunPlot << std::endl;
-    std::cout << earthPlot << std::endl;
-
-    for (int i = 0; i < n_steps; i++) {
-        sun = mod.getBodyByName("Sun");
-        earthLike = mod.getBodyByName("Earth");
-        // Error handling
-        if (earthLike.getPos().x >= 1e+12 || earthLike.getPos().x <= -1e+12) {
-            std::cout << "Planet moving an order of magnitude away" << std::endl;
-            std::cout << "Current position on x-axis: " << earthLike.getPos().x << std::endl;
-            break;
-        }
-        // Add points to plot
-        sunPlot->SetPoint(i, sun.getPos().x, sun.getPos().y, simtime[i]);
-        earthPlot->SetPoint(i, earthLike.getPos().x, earthLike.getPos().y, simtime[i]);
-        
-        earthPlot21->SetPoint(i, earthLike.getPos().x, earthLike.getPos().z, simtime[i]);
-        sunPlot21->SetPoint(i, sun.getPos().x, sun.getPos().z, simtime[i]);
-
-        sunx[i] = sun.getPos().x;
-        suny[i] = sun.getPos().y;
-        earthx[i] = earthLike.getPos().x;
-        earthy[i] = earthLike.getPos().y;
-        
-        if (i == n_steps) {
-            break;
-        }
-        simtime[i+1] = mod.iterate();
-        //std::cout << earthLike.getAcc().x << std::endl;
-    }
-    
-    for (TObject *obj : *c1->GetListOfPrimitives()) {
-        std::cout << obj->GetName() << std::endl;
-    }
-
-    pad_1->cd();
-    earthPlot->Draw("LINE PCOL");
-    sunPlot->Draw("SAME LINE");
-    pad_2->cd();
-    for (int i = 0; i < 20; i+=5) {
-        std::cout << "Sun x; " << sunx[i] << "  Earth x; " << earthx[i] << std::endl; 
-    }
-    earthPlot21->Draw("LINE PCOL");
-    sunPlot21->Draw("SAME LINE");
-    c1->SaveAs("plot.png");
-
-    return 0;
+int main() {
+    Main program = Main();
+    program.main();
 }

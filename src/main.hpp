@@ -1,0 +1,83 @@
+#ifndef MAIN_CLASS
+#define MAIN_CLASS
+
+#include <TCanvas.h>
+#include <TGFrame.h>
+#include <TMultiGraph.h>
+#include <TGraph2D.h>
+#include <TPolyMarker3D.h>
+#include <TPolyLine3D.h>
+#include <TView3D.h>
+#include <TButton.h>
+#include <TTimer.h>
+#include <TPad.h>
+#include <TMath.h>
+#include "TApplication.h"
+#include <TGButton.h>
+#include <TRootCanvas.h>
+
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <chrono>
+#include <thread>
+#include <iterator>
+
+#include "model.hpp"
+#include "body.hpp"
+#include "types.hpp"
+#include "constants.hpp"
+
+struct pWithFunction {
+    std::string name;
+    std::vector<position> posArray;
+    TPolyLine3D *graph;
+};
+
+class Main {
+        static double deltaT;
+        static model::Model mod; // = model::Model(deltaT);
+        //TApplication app;
+        static TApplication app;// = TApplication("Orbitals", 0, 0);
+        static int n_steps;
+        static std::vector<pWithFunction> planetPlotter;
+        static TCanvas *canv;
+        static TTimer *timer;
+        static TView3D *view;
+        static int iteration;
+        TPad *mainPad = nullptr;
+        static double outer_range;
+        static double zoom_factor;
+        static int limit;
+    public:
+
+        Main();
+        // Data input
+        std::vector<std::vector<std::string>> readData();
+        std::vector<std::vector<double>> transformData(std::vector<std::vector<std::string>> &data);
+
+        void initControlPanel(TCanvas *canv);
+
+        void static printZoom();
+        void static zoomIn();
+        void static zoomOut();
+
+        // Drawing
+        void static drawSingularStepLimit(size_t);
+        void static drawSingularStep();
+        void static drawStep();
+        void static drawRealTime();
+        void static drawAllAfter();
+
+        int main();
+
+        
+};
+
+void runner();
+#endif
