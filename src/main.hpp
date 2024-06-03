@@ -37,6 +37,7 @@ class Main {
         static int n_steps;
         static std::vector<pWithFunction> planetPlotter;
         static TCanvas *canv;
+        static TCanvas *controls;
         static TTimer *timer;
         static TView3D *view;
         static int iteration;
@@ -44,6 +45,8 @@ class Main {
         static double outer_range;
         static double zoom_factor;
         static int limit;
+        static TButton* current_center;
+        static std::vector<std::string> foci;
 
     public:
         static model::Model mod; // = model::Model(deltaT);
@@ -53,11 +56,12 @@ class Main {
         std::vector<std::vector<std::string>> readData();
         std::vector<std::vector<double>> transformData(std::vector<std::vector<std::string>> &data);
 
-        void initControlPanel(TCanvas *canv);
+        void initControlPanel();
 
         void static printZoom();
         void static zoomIn();
         void static zoomOut();
+        void static changeFocus();
 
         // Drawing
         void static drawSingularStepLimit(size_t);
