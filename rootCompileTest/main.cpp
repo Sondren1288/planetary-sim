@@ -12,12 +12,18 @@ void Main::someFunc() {
     std::cout << "Pressed" << std::endl;
 }
 
+void someFunc() {
+    std::cout << "Other pressed" << std::endl;
+}
+
 int main() {
     TApplication *app = new TApplication("App", 0, 0);
     TCanvas *canv = new TCanvas();
     canv->cd();
-    TButton *but = new TButton("Press", "Main::someFunc()", 0.1, 0.1, 0.9, 0.9);
+    TButton *but = new TButton("P1", "Main::someFunc()", 0.1, 0.1, 0.45, 0.9);
+    TButton *but2 = new TButton("P2", "someFunc()", 0.55, 0.1, 0.9, 0.9);
     but->Draw();
+    but2->Draw();
     app->Run();
     
 }

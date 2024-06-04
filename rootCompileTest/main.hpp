@@ -7,4 +7,5 @@ class Main {
     public:
         void static someFunc();
 };
+void someFunc();
 #endif
