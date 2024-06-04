@@ -9,7 +9,7 @@ using namespace model;
 
 
 Model::Model(double deltaT) {
-    this->deltaT = deltaT;
+    this->deltaT = deltaT / 2;
     simTime = 0.0;
 }
 
@@ -28,7 +28,14 @@ body::Body Model::getBodyByName(std::string toFind) {
 }
 
 double Model::iterate() {
-    for (body::Body & body : bodies) {
+    for (body::Body &body : bodies) {
+        updateBody(body);
+    }
+    simTime = simTime + deltaT;
+    // To improve accuraccy, we update twice with half the time interval instead
+    // of only once, as the speed is mostly limited by the speed at which it draws
+    // the plot instead of the actual calculations
+    for (body::Body &body : bodies) {
         updateBody(body);
     }
     simTime = simTime + deltaT;
