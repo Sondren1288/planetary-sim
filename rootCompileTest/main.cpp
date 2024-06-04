@@ -18,14 +18,9 @@ void someFunc() {
     std::cout << "Other pressed" << std::endl;
 }
 
-int main() {
-
-    TList *l = TApplication::GetApplications();
-    std::cout << "Is nullpointer?: " << (nullptr == l) << std::endl;
+void Main::run() {
     
-    if (l == nullptr) {
-        TApplication *app = new TApplication("App", 0, 0);
-    }
+    TApplication *app = new TApplication("App", 0, 0);
     TCanvas *canv = new TCanvas();
     canv->cd();
     TButton *but = new TButton("P1", "Main::someFunc()", 0.1, 0.1, 0.45, 0.9);
@@ -36,7 +31,10 @@ int main() {
         gSystem->ProcessEvents();
     }
     //app->Run();
-    
 }
 
+int main() {
+    Main::run();
+    return 0;
+}
 

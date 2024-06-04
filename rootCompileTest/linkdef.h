@@ -8,5 +8,6 @@
 #pragma link C++ class Main;
 
 #pragma link C++ function someFunc();
+#pragma link C++ function main();
 
 #endif
