@@ -1,24 +1,19 @@
 ## Priority 
-* Add increase / decrease in tail-length
-* Accurately calculate orbit using aphelion and such, to get proper speed and orbit of planets.
-* Change physics model from simple newtonian to Verlet
-* Add the remaining planets of the solar system
+* Add more of the major moons
+* Add increase / decrease in tail-length ?
 
-Send message with head of title
-
-Add more planets in the solar system
-Realtime simulation as well; updating ALL graphs within the loop at the same time before the next iteration.
-Fix axis with 1:1:1 ratio, at least in the spacial domain (Not necessarily the time domain).
-
-
-Maybe draw objects with the given radius of the object.
-
-
-Instead of euler, use verlet.
-Should it prove necessary, then a eulerstep could be considered.
-Create a timestep decrement when bodies get closer to each other, or add some form of eulerstep to ensure that planets do not launch at the speed of light when approaching too close. Or improve physics model, I guess
+* Add orbit randomness, so as not to start all planets on a line.
+* Add orbital inclination above the ecliptic plane
+* Maybe draw names above the planets when paused?
 
 
 
 ### Notes to self
 Slows down significantly when it reaches 2000+ iterations. 1000 is still manageable, but drawing 2k+ seems to be unnessesary
+
+
+### Done
+* More accurate orbits with initial velocity using aphelion.
+* Verlet method implemented
+* All full planets in solar system are added.
+* Draw 10 000 steps at once
