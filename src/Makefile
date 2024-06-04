@@ -12,7 +12,7 @@ dict_output.cxx: $(DEP_FILES) linkdef.h
 	rootcling -f $@ $^ 
 
 libRootLib.so: dict_output.cxx $(DEPS) main.cpp
-	g++ -shared -g -fPIC -o $@ $(ROOD_DEP_2) -I"./" $(ROOT_DEP) $(ROOT_LIBS) $^ 
+	g++ -shared -g -fPIC -o $@ $(ROOT_DEP_2) -I"./" $(ROOT_DEP) $(ROOT_LIBS) $^ 
 
 $(NAME).out: main.cpp $(DEPS) libRootLib.so
 	g++ main.cpp -o $(NAME).out $(DEPS) $(DEP_FILES) $(ROOT_DEP) $(ROOT_DEP_2) libRootLib.so
