@@ -1,4 +1,4 @@
-#ifdef __CLING__
+#if defined(__CLING__)
 
 #pragma link C++ nestedclasses;
 #pragma link C++ nestedtypedefs;
