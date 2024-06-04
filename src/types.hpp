@@ -1,5 +1,6 @@
 #ifndef TYPES_
 #define TYPES_
+#include <cmath>
 struct position{
     // Position in 3D eutclidean
     double x;
@@ -46,6 +47,33 @@ template <typename Vec3D> Vec3D mul(Vec3D current, double factor) {
         current.x * factor,
         current.y * factor,
         current.z * factor
+    };
+}
+template <typename Vec3D> Vec3D rotateAroundX(Vec3D vec, double rad) {
+    double c = cos(rad);
+    double s = sin(rad);
+    return {
+        vec.x,
+        c * vec.y - s * vec.z,
+        s * vec.y + c * vec.z
+    };
+}
+template <typename Vec3D> Vec3D rotateAroundY(Vec3D vec, double rad) {
+    double c = cos(rad);
+    double s = sin(rad);
+    return {
+        c * vec.x + s * vec.z,
+        vec.y,
+        c * vec.z - s * vec.x
+    };
+}
+template <typename Vec3D> Vec3D rotateAroundZ(Vec3D vec, double rad) {
+    double c = cos(rad);
+    double s = sin(rad);
+    return {
+        c * vec.x - s * vec.y,
+        s * vec.x + c * vec.y,
+        vec.z
     };
 }
 

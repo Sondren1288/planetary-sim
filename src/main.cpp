@@ -16,11 +16,14 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <fstream>
+#include <cstdlib>
+#include <random>
 
 #include "model.hpp"
 #include "body.hpp"
@@ -28,7 +31,7 @@
 #include "constants.hpp"
 #include "main.hpp"
 
-double Main::deltaT = (60 * 60) * 6;
+double Main::deltaT = (60 * 60); // 3 hours each step
 model::Model Main::mod = model::Model(Main::deltaT);
 int Main::n_steps = 100000;
 // Globals
@@ -162,10 +165,7 @@ void Main::initControlPanel() {
     TButton *zoomIn = new TButton("+", "Main::zoomIn()", (padding + boxSize) * 2 + padding, 1 - (padding + boxSize) * 2, (padding + boxSize) * 3, 1 - (padding + boxSize) - padding);
     TButton *zoomOut = new TButton("-", "Main::zoomOut()", (padding + boxSize) * 2 + padding, 1 - (padding + boxSize) * 3, (padding + boxSize) * 3, 1 - (padding + boxSize) * 2 - padding);
     current_center = new TButton("origo", "Main::changeFocus()", padding, padding, (padding + boxSize) * 2, (padding + boxSize) * 2);
-    current_center->SetTextSize(0.3);
-
-    // ??
-    TGTextButton *allAfter_ = new TGTextButton();
+    current_center->SetTextSize(0.22);
     
     step->Draw();
     realTime->Draw();
@@ -180,12 +180,12 @@ void Main::printZoom() {
 }
 
 void Main::zoomIn() {
-    zoom_factor = zoom_factor * 0.95;
+    zoom_factor = zoom_factor * 0.85;
     printZoom();
 }
 
 void Main::zoomOut() {
-    zoom_factor = zoom_factor * 1.05;
+    zoom_factor = zoom_factor * 1.15;
     printZoom();
 }
 
@@ -201,6 +201,12 @@ void Main::drawSingularStepLimit(size_t limit=500) {
         view->SetRange(-cur_zoom, -cur_zoom, -cur_zoom, cur_zoom, cur_zoom, cur_zoom);
     }
     
+    mod.iterate();
+    iteration++;
+    if (iteration % 1000 == 0) {
+        std::cout << "Iteration: " << iteration << std::endl;
+    }
+
     bool first = true;
     for (pWithFunction &pStruct : planetPlotter) {
 
@@ -239,11 +245,6 @@ void Main::drawSingularStepLimit(size_t limit=500) {
         } else {
             pStruct.graph->Draw("SAME");
         }
-    }
-    mod.iterate();
-    iteration++;
-    if (iteration % 1000 == 0) {
-        std::cout << "Iteration: " << iteration << std::endl;
     }
     //canv->SetRealAspectRatio();
     canv->Modified();
@@ -291,11 +292,11 @@ void Main::drawAllAfter() {
                 position p = curBod.getPos();
                 //pStruct.graph->SetPoint(iteration, p.x, p.y, p.z);
                 pStruct.posArray.push_back(p);
-                mod.iterate();
-                iteration++;
-                if (iteration % 1000 == 0) {
-                    std::cout << "Iteration " << iteration << std::endl;
-                }
+            }
+            mod.iterate();
+            iteration++;
+            if (iteration % 1000 == 0) {
+                std::cout << "Iteration " << iteration << std::endl;
             }
         }
         for (pWithFunction &pStruct : planetPlotter) {
@@ -346,6 +347,15 @@ int Main::main() {
 
     initControlPanel();
 
+    // Initiate a random number generator
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distrib(0.0, 2*3.1415);
+    // Why auto here? Because the return type of bind is not easily defined,
+    // as seen here:
+    // https://en.cppreference.com/w/cpp/utility/functional/bind 
+    // but it allows us to simply call randRotation() when we want a new number.
+    auto randRotation = std::bind(distrib, generator);
+
     // These lines are also relatively inefficient, 
     // but again it is fine, because it only runs at startup
     for (int row = 0; row < pNames.size(); row++) {
@@ -356,8 +366,17 @@ int Main::main() {
         // Currently using aphelion as distance 
         // Will be using the aphelion and finding the minumum velocity
         // that a planet has in its orbit
+        //
+        // Rotation around the Y-axis must happen BEFORE rotation around the Z axis
         position pos = {planetaryData[row][1], 0, 0};
+        
+        // Rotation around Z axis
+        double currentRotation = randRotation();
+        pos = rotateAroundZ(pos, currentRotation);
+
         double radius = planetaryData[row][4];
+
+        
 
         // To find min velocity, we use the formulae listed at
         // https://en.wikipedia.org/wiki/Apsis#Mathematical_formulae
@@ -375,9 +394,13 @@ int Main::main() {
             double semi_major = (planetaryData[row][2] + planetaryData[row][1]) / 2.0;
             double gravitational_parameter = GRAVITATIONAL * (mass + dependant_mass);
             double vel_min = sqrt( (1-eccentricity) * gravitational_parameter  /  ( (1+eccentricity) * semi_major ) );
+
+            // Velocity needs to have the same rotation as the position
+            vel = {0, vel_min, 0};
+            vel = rotateAroundZ(vel, currentRotation);
         
             std::cout << "Planet: " << pNames[row][0] << " minimum velocity: " << vel_min << std::endl;
-            vel = plu(mod.getBodyByName(dependant_body).getVel(), {0, vel_min, 0});
+            vel = plu(mod.getBodyByName(dependant_body).getVel(), vel);
             pos = plu(mod.getBodyByName(dependant_body).getPos(), pos);
             std::cout << "Position: " << pos.x << " " << pos.y << " " << pos.z << std::endl;
         }
@@ -396,10 +419,6 @@ int Main::main() {
     }
 
     canv->cd();
-    //mainPad->SetCanvas(canv);
-    //canv->SetPadSave(mainPad);
-    //view->SetRange(-249'261'000'0, -249'261'000'0, -1000, 249'261'000'0, 249'261'000'0, 1000);
-    //view->SetRange(-249'261'000'000, -249'261'000'000, -1000, 249'261'000'000, 249'261'000'000, 1000);
     view->ShowAxis();
     drawStep();
 
