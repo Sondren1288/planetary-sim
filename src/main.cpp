@@ -36,6 +36,7 @@ model::Model Main::mod = model::Model(Main::deltaT);
 int Main::n_steps = 100000;
 // Globals
 // Init model to be able to add planets
+TApplication app = TApplication("Orbitals", 0, 0);
 TCanvas *Main::canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
 TCanvas *Main::controls = new TCanvas("CONTROLS", "Controls");
 TTimer *Main::timer = new TTimer(0);
@@ -46,7 +47,6 @@ double Main::zoom_factor = 1.0;
 int Main::limit = 500;
 std::vector<pWithFunction> Main::planetPlotter = {};
 std::vector<std::string> Main::foci = {"origo"};
-TApplication Main::app = TApplication("Orbitals", 0, 0);
 TButton *Main::current_center = new TButton();
 
 Main::Main() {

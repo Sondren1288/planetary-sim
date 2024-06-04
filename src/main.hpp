@@ -33,7 +33,7 @@ struct pWithFunction {
 class Main {
         static double deltaT;
         //TApplication app;
-        static TApplication app;// = TApplication("Orbitals", 0, 0);
+        //static TApplication app;// = TApplication("Orbitals", 0, 0);
         static int n_steps;
         static std::vector<pWithFunction> planetPlotter;
         static TCanvas *canv;
