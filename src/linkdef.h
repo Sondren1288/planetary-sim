@@ -16,6 +16,6 @@
 #pragma link C++ class Body+;
 #pragma link C++ class Main+;
 
-#pragma link C++ function runner();
+#pragma link C++ function run();
 
 #endif

@@ -75,5 +75,5 @@ class Main {
         
 };
 
-void runner();
+void run();
 #endif
