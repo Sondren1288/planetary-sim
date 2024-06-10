@@ -253,9 +253,9 @@ void Main::drawSingularStepLimit(size_t limit=500) {
             pStruct.graph->Draw("SAME");
         }
     }
-    //canv->SetRealAspectRatio();
     canv->Modified();
     canv->Update();
+    canv->Resize();
 }
 
 void Main::changeFocus() {
@@ -333,6 +333,7 @@ int Main::main() {
     view = (TView3D*) TView::CreateView(1, 0, 0);
     mainPad = new TPad("PAD", "Pad", 0.01, 0.01, 0.99, 0.99);
 
+    canv->SetRealAspectRatio();
     if (canv->GetAspectRatio() == 1.0) {
         canv->SetFixedAspectRatio(true);
     } else {
@@ -405,6 +406,7 @@ int Main::main() {
 
             // Velocity needs to have the same rotation as the position
             vel = {0, vel_min, 0};
+            vel = rotateAroundY(vel, planetaryData[row][6]);
             vel = rotateAroundZ(vel, currentRotation);
         
             std::cout << "Planet: " << pNames[row][0] << " minimum velocity: " << vel_min << std::endl;
