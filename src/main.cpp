@@ -36,7 +36,7 @@ model::Model Main::mod = model::Model(Main::deltaT);
 int Main::n_steps = 100000;
 // Globals
 // Init model to be able to add planets
-TApplication app = TApplication("Orbitals", 0, 0);
+TApplication *app = new TApplication("Orbitals", 0, 0);
 TCanvas *Main::canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
 TCanvas *Main::controls = new TCanvas("CONTROLS", "Controls");
 TTimer *Main::timer = new TTimer(0);
@@ -101,7 +101,7 @@ std::vector<std::vector<double>> Main::transformData(std::vector<std::vector<std
 
     // Iterate over each row (Corresponds to planets)
     for (std::vector<std::string> column : data) {
-        // Name, mass, aphelion, periphelion, avg orbital vel, radius, eccentricity, dependant body
+        // Name, mass, aphelion, periphelion, avg orbital vel, radius, eccentricity, dependant body, inclination
         
         // Add the name and dependent body to the objectColumn
         std::vector<std::string> name = {column[0], column[7]};
@@ -126,9 +126,16 @@ std::vector<std::vector<double>> Main::transformData(std::vector<std::vector<std
             if (counter == 7) {
                 continue;
             }
-            // Transform the value into double
-            // and then add it to doubleVec
-            doubleVec.push_back(std::stod(data_));
+            if (counter != 8) { 
+                // Transform the value into double
+                // and then add it to doubleVec
+                doubleVec.push_back(std::stod(data_));
+            } else {
+                // Transform degrees to radians
+                double degRot = std::stod(data_);
+                degRot = degRot * 3.1415 / 180;
+                doubleVec.push_back(degRot);
+            }
 
         }
         // Add the list of values as a row to
@@ -361,7 +368,7 @@ int Main::main() {
     for (int row = 0; row < pNames.size(); row++) {
 
         // For each row 
-        // mass, aphelion, periphelion, avg orbital vel, radius, eccentricity
+        // mass, aphelion, periphelion, avg orbital vel, radius, eccentricity, inclination
         double mass = planetaryData[row][0];
         // Currently using aphelion as distance 
         // Will be using the aphelion and finding the minumum velocity
@@ -372,6 +379,7 @@ int Main::main() {
         
         // Rotation around Z axis
         double currentRotation = randRotation();
+        pos = rotateAroundY(pos, planetaryData[row][6]);
         pos = rotateAroundZ(pos, currentRotation);
 
         double radius = planetaryData[row][4];
@@ -424,20 +432,11 @@ int Main::main() {
 
     TRootCanvas *rc = (TRootCanvas*) canv->GetCanvasImp();
     rc->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
-    
-    app.Run();
-
-    std::cout << "Running, q to quit" << std::endl;
-    std::string input;
-    std::cin >> input;
-    while ("q" != input && "Q" != input) {
-        std::cin >> input;
-    }
-
+    app->Run();
     return 0;
 }
 
-void runner() {
+void run() {
     Main program = Main();
     program.main();
 }
@@ -445,4 +444,6 @@ void runner() {
 int main() {
     Main program = Main();
     program.main();
+    
+    return 0;
 }
