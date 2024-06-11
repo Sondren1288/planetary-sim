@@ -12,8 +12,6 @@
 #include "main.hpp"
 
 // All classes
-#pragma link C++ class Model+;
-#pragma link C++ class Body+;
 #pragma link C++ class Main+;
 
 #pragma link C++ function run();
