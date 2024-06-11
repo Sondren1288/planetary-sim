@@ -20,6 +20,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <fstream>
@@ -45,7 +46,7 @@ model::Model Main::mod = model::Model(Main::deltaT);
 // How many steps each time you press the "X steps"
 int Main::n_steps = 100000;
 // Init of canvases and ROOT specific views
-TCanvas *Main::canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
+TCanvas *Main::canv = new TCanvas("PLOTTER", "Plotter", 1200, 1200);
 TCanvas *Main::controls = new TCanvas("CONTROLS", "Controls");
 TTimer *Main::timer = new TTimer(0);
 TView3D *Main::view = (TView3D*) TView::CreateView(1, 0, 0);
@@ -436,11 +437,28 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
      */
 
     if (argc > 1) {
-        ;
+        // If there was an input argument
+        try {
+            // Try and turn it to a number
+            int size = std::stoi(argv[1]);
+            canv = new TCanvas("PLOTTER", "Plotter", size, size);
+            std::cout << "Size; " << size << std::endl;
+            std::cout << "argc; " << argc << std::endl;
+        } catch (std::invalid_argument) {
+            // If it could not be turned to a number, print error
+            std::cout << "Could not convert to integer.\n" 
+                      << "Should be size in pixels of main canvas. Usage:\n" 
+                      << "~$ ./Project.out 700\n"
+                      << "will create a main window of size 700 x 700.\n"
+                      << "Default is 1200 x 1200"
+                      << std::endl;
+            return 1;
+        }
+    } else {
+        // Redefining them here allows TApplication to be passed
+        // as an argument to the function
+        canv = new TCanvas("PLOTTER", "Plotter", 1200, 1200);
     }
-    // Redefining them here allows TApplication to be passed
-    // as an argument to the function
-    canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
     controls = new TCanvas("CONTROLS", "Controls");
     timer = new TTimer(0);
     view = (TView3D*) TView::CreateView(1, 0, 0);
@@ -586,6 +604,7 @@ int main(int argc, char *argv[]) {
     Main program;
     // Create a TApplication only when running as compiled
     TApplication *app = new TApplication("Orbitals", 0, 0);
-    program.main(argc, argv, app);
-    return 0;
+    int ret = program.main(argc, argv, app);
+    app->Delete();
+    return ret;
 }
