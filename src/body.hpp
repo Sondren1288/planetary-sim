@@ -16,7 +16,6 @@ namespace body {
             Body(double mass, position pos);
             Body(double mass, position pos, velocity v);
             Body(std::string name, double mass, position pos, velocity v, double radius);
-            Body(double mass, position pos, velocity v, acceleration acc);
             void setName(std::string);
             std::string getName();
             position getPos();
@@ -24,10 +23,8 @@ namespace body {
             acceleration getAcc();
             double getMass();
             force getAttraction(Body &other);
-            void update(double timeStep, force totalForce);
             void updatePos(double timestep);
             void updateVerlet(double timeStep, force totalForce);
-            position step(double timestop);
             void setPos(position);
             double getRadius();
             void setRadius(double);

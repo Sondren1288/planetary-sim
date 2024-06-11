@@ -24,6 +24,9 @@
 #include "model.hpp"
 #include "types.hpp"
 
+// Simple struct used for storing
+// planets and their most recent positions,
+// as well as a plottable line
 struct pWithFunction {
     std::string name;
     std::vector<position> posArray;
@@ -32,8 +35,6 @@ struct pWithFunction {
 
 class Main {
         static double deltaT;
-        //TApplication app;
-        //static TApplication app;// = TApplication("Orbitals", 0, 0);
         static int n_steps;
         static std::vector<pWithFunction> planetPlotter;
         static TCanvas *canv;
@@ -56,6 +57,9 @@ class Main {
 
         void initControlPanel();
 
+        // Static funtion ensure they are valid for the entirety of 
+        // the lifetime of the program, ensuring that they can be used 
+        // by ROOT in buttons and similar
         void static printZoom();
         void static zoomIn();
         void static zoomOut();
@@ -69,9 +73,10 @@ class Main {
         void static drawAllAfter();
 
         int main(int argc, char *argv[], TApplication *app);
-
-        
 };
 
+// `run()` is defined here to be usable in `linkdef.h`
+// If `run` was only defined in `main.cpp`, then it would not
+// be visible in `linkdef.h` 
 void run();
 #endif

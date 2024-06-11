@@ -4,19 +4,22 @@
 #include "types.hpp"
 #include "constants.hpp"
 
-
 using namespace body;
 
 
 Body::Body(double mass, position pos) {
-    // Stationary object with position and mass
+    /*
+     * A body with mass and initial position
+     */
     this->mass = mass;
     this->pos = pos;
     this->radius = 0;
 }
 
 Body::Body(double mass, position pos, velocity v) {
-    // Velocity is constant (for now)
+    /*
+     * A Body with mass, and initial position and velocity
+     */
     this->mass = mass;
     this->pos = pos;
     this->vel = v;
@@ -24,6 +27,10 @@ Body::Body(double mass, position pos, velocity v) {
 }
 
 Body::Body(std::string name, double mass, position pos, velocity v, double radius) {
+    /*
+     * A body with a name, mass, and radius, as well as initial position and velocity.
+     * Generally the one that is used
+     */
     this->mass = mass;
     this->pos = pos;
     this->vel = v;
@@ -31,17 +38,12 @@ Body::Body(std::string name, double mass, position pos, velocity v, double radiu
     setName(name);
 }
 
-Body::Body(double mass, position pos, velocity v, acceleration acc) {
-    this->mass = mass;
-    this->pos = pos;
-    this->vel = v;
-    this->acc = acc;
-    this->radius = 0;
-}
 
 
 force Body::getAttraction(Body &other) {
-    // Get attraction between this body and another
+    /*
+     * Find the attraction force between this body and another.
+     */
     double otherMass = other.mass;
         
     // Get directional vector
@@ -60,27 +62,12 @@ force Body::getAttraction(Body &other) {
     return mul(direction, undirectedForce);
 }
 
-void Body::update(double timestep, force totalForce) {
-    // Update acceleration first
-    force newAcc = div(totalForce, mass);
-    this->acc = {newAcc.x, newAcc.y, newAcc.z};
-    acceleration accStep = mul(acc, timestep);
-    velocity velStep = mul(vel, timestep);
 
-    this->pos = {
-        pos.x + velStep.x, 
-        pos.y + velStep.y, 
-        pos.z + velStep.z
-    };
-    this->vel = {
-        vel.x + accStep.x,
-        vel.y + accStep.y,
-        vel.z + accStep.z 
-    };
-
-}
 
 void Body::updatePos(double timestep) {
+    /*
+     * Update position according to velocity verlet
+     */
     pos = {
         pos.x + vel.x * timestep + acc.x * (timestep * timestep * 0.5),
         pos.y + vel.y * timestep + acc.y * (timestep * timestep * 0.5),
@@ -88,10 +75,23 @@ void Body::updatePos(double timestep) {
     };
 }
 
+
+
 void Body::updateVerlet(double timestep, force totalForce) {
+    /*
+     * Update a body using the Velocity Verlet method for accuracy.
+     * Due to the nature of celestial bodies, there is no drag or forces
+     * depending on velocity of the body.
+     * As such, the shortened version can be used.
+     * https://en.wikipedia.org/wiki/Verlet_integration#Velocity_Verlet
+     *
+     * Some of this logic is implemented in Model::updateBody
+     */
+
     // x(t + dt) = x(t) + v(t)dt + 1/2 a(t)dt^2
     // v(t + dt) = v(t) + dt(a(t) + a(t + dt))/2 
     force newAcc = div(totalForce, mass);
+    // Update velocity before updating acceleration
     vel = {
         vel.x + (acc.x + newAcc.x) * timestep * 0.5,
         vel.y + (acc.y + newAcc.y) * timestep * 0.5,
@@ -100,18 +100,11 @@ void Body::updateVerlet(double timestep, force totalForce) {
     acc = {newAcc.x, newAcc.y, newAcc.z};
 }
 
-position Body::step(double timestep) {
-    // Update acceleration first
-    velocity velStep = mul(vel, timestep);
 
-    position tPos = {
-        pos.x + velStep.x, 
-        pos.y + velStep.y, 
-        pos.z + velStep.z
-    };
 
-    return tPos;
-}
+/*************************************
+ * Getters and setters
+ *************************************/
 
 void Body::setPos(position p) {
     pos = p;
@@ -120,6 +113,7 @@ void Body::setPos(position p) {
 void Body::setName(std::string newName) {
     name = newName;
 }
+
 std::string Body::getName() {
     return name;
 }
@@ -127,18 +121,23 @@ std::string Body::getName() {
 position Body::getPos() {
     return pos;
 }
+
 velocity Body::getVel() {
     return vel;
 }
+
 acceleration Body::getAcc() {
     return acc;
 }
+
 double Body::getMass() {
     return mass;
 }
+
 double Body::getRadius() {
     return radius;
 }
+
 void Body::setRadius(double newRad) {
     radius = newRad;
 }
