@@ -41,7 +41,6 @@ class Main {
         static TTimer *timer;
         static TView3D *view;
         static int iteration;
-        TPad *mainPad = nullptr;
         static double outer_range;
         static double zoom_factor;
         static int limit;
@@ -51,7 +50,6 @@ class Main {
     public:
         static model::Model mod; // = model::Model(deltaT);
 
-        Main();
         // Data input
         std::vector<std::vector<std::string>> readData();
         std::vector<std::vector<double>> transformData(std::vector<std::vector<std::string>> &data);
@@ -70,7 +68,7 @@ class Main {
         void static drawRealTime();
         void static drawAllAfter();
 
-        int main();
+        int main(int argc, char *argv[], TApplication *app);
 
         
 };

@@ -12,6 +12,7 @@
 #include <TApplication.h>
 #include <TGButton.h>
 #include <TRootCanvas.h>
+#include <TSystem.h>
 
 #include <cmath>
 #include <cstdio>
@@ -31,34 +32,47 @@
 #include "constants.hpp"
 #include "main.hpp"
 
-double Main::deltaT = (60 * 60); // 3 hours each step
+
+
+/*
+ * Init of static variables.
+ * These are defined in main.hpp 
+ * and are static as to ensure their availability
+ * for the lifetime of the program.
+ */
+double Main::deltaT = (60 * 60); // 1 hours each step
 model::Model Main::mod = model::Model(Main::deltaT);
+// How many steps each time you press the "X steps"
 int Main::n_steps = 100000;
-// Globals
-// Init model to be able to add planets
-TApplication *app = new TApplication("Orbitals", 0, 0);
+// Init of canvases and ROOT specific views
 TCanvas *Main::canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
 TCanvas *Main::controls = new TCanvas("CONTROLS", "Controls");
 TTimer *Main::timer = new TTimer(0);
 TView3D *Main::view = (TView3D*) TView::CreateView(1, 0, 0);
+// Some iterative and changeable values
 int Main::iteration = 0;
 double Main::outer_range = 4'540'000'000'000;
 double Main::zoom_factor = 1.0;
+// The number of points after each planet to draw
 int Main::limit = 500;
+// Init of vector that will contain information on all planets
 std::vector<pWithFunction> Main::planetPlotter = {};
+// Init of vector to determine focus point / view of graph
 std::vector<std::string> Main::foci = {"origo"};
+// A button to be used with the focus point
 TButton *Main::current_center = new TButton();
 
-Main::Main() {
-    // app = TApplication("Orbitals", 0, 0);
-    // Globals
-    // Init model to be able to add planets
-    mainPad = new TPad("PAD", "Pad", 0.01, 0.01, 0.99, 0.99);
-}
+
 
 std::vector<std::vector<std::string>> Main::readData() {
+    /*
+     * Function that reads the "planetaryData" csv and
+     * stores the data in a vector which it then returns
+     */
+    // Open file
     std::ifstream data("planetaryData.csv");
 
+    // Init vectors
     std::vector<std::vector<std::string>> tmpData;
     std::vector<std::string> strData;
 
@@ -89,13 +103,18 @@ std::vector<std::vector<std::string>> Main::readData() {
     return tmpData;
 }
 
+
+
 std::vector<std::vector<double>> Main::transformData(std::vector<std::vector<std::string>> &data) {
     /*
-     * Transforms the data where the first column is a list of names
-     * into a singular column, where the rest of the data is 
-     * made into another table of doubles
+     * Transforms the data into two seperate vectors.
+     * The 1st column and the 8th column contain planet names and dependent body,
+     * so they remain in the provided vector, whereas all other values are 
+     * transformed to doubles and added to the returned vector. 
+     * This function modifies the provided vector.
      */
-    // Man is this something to look at. But it works
+
+    // Init of vector objects
     std::vector<std::vector<std::string>> objectColumn;
     std::vector<std::vector<double>> dataObject;
 
@@ -131,12 +150,12 @@ std::vector<std::vector<double>> Main::transformData(std::vector<std::vector<std
                 // and then add it to doubleVec
                 doubleVec.push_back(std::stod(data_));
             } else {
-                // Transform degrees to radians
+                // This is for inclination, and since it 
+                // is given in degrees, transform to radians
                 double degRot = std::stod(data_);
                 degRot = degRot * 3.1415 / 180;
                 doubleVec.push_back(degRot);
             }
-
         }
         // Add the list of values as a row to
         // dataObject
@@ -145,94 +164,140 @@ std::vector<std::vector<double>> Main::transformData(std::vector<std::vector<std
     // Swap data and objectColumn.
     // This will make the original vector
     // change into the one we created
+    // containing names and dependent bodies.
     data.swap(objectColumn);
+    // Return the vector of doubles
     return dataObject;
 }
 
 
 
-
 void Main::initControlPanel() {
+    /*
+     * Create the buttons and their layout,
+     * as well as their functions.
+     * The `controls` canvas needs to be already made.
+     */
     controls->cd();
+    // Grid-size
     int layers = 3;
     float padding = 0.05;
     float boxSize = 1.0 / layers - padding - padding / layers;
     std::cout << "Box size: " << boxSize << std::endl;
-    float iterPos = padding + boxSize;
-    // Top == 1.0
+
     // Bottom left == 0, 0
-    //
+    // Upper row
     TButton *step = new TButton("Step", "Main::drawStep()", padding, 1 - (padding + boxSize), padding + boxSize, 1 - padding);
     TButton *allAfter = new TButton("10 000 Steps", "Main::drawAllAfter()", padding + boxSize + padding, 1 - (padding + boxSize), (padding + boxSize) * 2, 1 - padding); 
     TButton *realTime = new TButton("Real time", "Main::drawRealTime()", (padding + boxSize) * 2 + padding, 1 - (padding + boxSize), (padding + boxSize) * 3, 1 - padding);
+    // Scale text to be readable on button
     step->SetTextSize(0.15);
     allAfter->SetTextSize(0.15);
     realTime->SetTextSize(0.15);
 
+    // 2 lower rows, current_center spans 2 positions in each direction
     TButton *zoomIn = new TButton("+", "Main::zoomIn()", (padding + boxSize) * 2 + padding, 1 - (padding + boxSize) * 2, (padding + boxSize) * 3, 1 - (padding + boxSize) - padding);
     TButton *zoomOut = new TButton("-", "Main::zoomOut()", (padding + boxSize) * 2 + padding, 1 - (padding + boxSize) * 3, (padding + boxSize) * 3, 1 - (padding + boxSize) * 2 - padding);
     current_center = new TButton("origo", "Main::changeFocus()", padding, padding, (padding + boxSize) * 2, (padding + boxSize) * 2);
+    // Scale text of current_center. + and - does not need to be scaled
     current_center->SetTextSize(0.22);
     
+    // Draw the buttons to the canvas
     step->Draw();
     realTime->Draw();
     allAfter->Draw();
     zoomIn->Draw();
     zoomOut->Draw();
     current_center->Draw();
+    controls->Update();
 }
 
+
+
 void Main::printZoom() {
+    /*
+     * Print the current zoom scale from "default"
+     */
     std::cout << "Current zoom level: " << zoom_factor << std::endl;
 }
 
+
+
 void Main::zoomIn() {
+    /*
+     * Scale the current zoom-factor down
+     */
     zoom_factor = zoom_factor * 0.85;
     printZoom();
 }
 
+
+
 void Main::zoomOut() {
+    /*
+     * Scale the current zoom-factor up
+     */
     zoom_factor = zoom_factor * 1.15;
     printZoom();
 }
 
+
+
 void Main::drawSingularStepLimit(size_t limit=500) {
+    /*
+     * Draw a single step for each planet where the 
+     * number of allowed points for each tail eaquals the
+     * limit size_t.
+     *
+     * Will iterate the simulation one step forward.
+     */
+    
+    // Clear canvas as to not draw ontop of the old graph
     canv->cd();
     canv->Clear();
+    // When canvas was cleared, the view was deleted.
+    // This has to be created again.
     view = (TView3D*) TView::CreateView(1, 0, 0);
+    // Using the zoom_factor to set the current viewing distance.
     double cur_zoom = outer_range * zoom_factor;
+    // If the current "selected" orbital is not origo, move to said location
     if (strcmp(current_center->GetTitle(), "origo") != 0) {
         position p = mod.getBodyByName(current_center->GetTitle()).getPos();
         view->SetRange(-cur_zoom + p.x, -cur_zoom + p.y, -cur_zoom +p.z, cur_zoom + p.x, cur_zoom + p.y, cur_zoom + p.z);
     } else {
+        // Else, draw with origo as the center.
         view->SetRange(-cur_zoom, -cur_zoom, -cur_zoom, cur_zoom, cur_zoom, cur_zoom);
     }
     
+    // Iterate the model
     mod.iterate();
+    // Add one to the iteration count
     iteration++;
     if (iteration % 1000 == 0) {
         std::cout << "Iteration: " << iteration << std::endl;
     }
 
     bool first = true;
+    // Iterate over each planet
     for (pWithFunction &pStruct : planetPlotter) {
 
         body::Body curBod = mod.getBodyByName(pStruct.name);
         position p = curBod.getPos();
 
+        // Draw the sphere that is the current position of the body
         TPolyMarker3D *plt = new TPolyMarker3D();
         plt->SetPoint(0, p.x, p.y, p.z);
         plt->SetPoint(1, p.x, p.y, p.z);
         plt->SetMarkerStyle(20);
-        //plt->SetMarkerStyle(53+(18*2));
         plt->SetMarkerSize(2.3);
         plt->Draw("");
         first = false;
 
-        // Increase vector
         if (pStruct.posArray.size() <= limit) {
+            // Increase vector if not over or at the limit
             pStruct.posArray.push_back(p);
         } else {
+            // If at the limit, erase the difference between length and limit, and add the new position
             pStruct.posArray.erase(pStruct.posArray.begin(), pStruct.posArray.end() - limit);
             pStruct.posArray.push_back(p);
             pStruct.graph->SetPolyLine(limit);
@@ -242,10 +307,11 @@ void Main::drawSingularStepLimit(size_t limit=500) {
         for (int i = 0; i < pStruct.posArray.size(); i++) {
             std::vector<position> &poses = pStruct.posArray;
             position tmpP = poses[i];
+            // Replace points in graph
             pStruct.graph->SetPoint(i, tmpP.x, tmpP.y, tmpP.z);
         }
 
-        // Draw the thing
+        // Draw the first without "SAME"
         if (first) {
             pStruct.graph->Draw();
             first = false;
@@ -253,41 +319,80 @@ void Main::drawSingularStepLimit(size_t limit=500) {
             pStruct.graph->Draw("SAME");
         }
     }
+    // Update and draw the changes to the canvas
     canv->Modified();
     canv->Update();
+    canv->ResizePad();
     canv->Resize();
+    view->ResizePad();
 }
 
+
+
 void Main::changeFocus() {
+    /*
+     * Change focus by iterationg over a list
+     * of bodies. Will loop when all are passed
+     */
     controls->cd();
     std::string name = current_center->GetTitle();
+    // Find the position of the current focus
     std::vector<std::string>::iterator pos = std::find(foci.begin(), foci.end(), name);
     int index = 0;
     if (pos + 1 == foci.end()) {
+        // If the next position is the end of the vector, 
+        // the next element should be the first element
         index = 0;
     } else {
+        // Get index of next body
         index = pos - foci.begin() + 1;
     };
+    // Change title to the new planet 
+    // (this is also how the information is passed to the draw call)
     current_center->SetTitle(foci[index].c_str());
+    // Update the button to reflect the changes
     current_center->Draw();
 }
 
+
+
 void Main::drawStep() {
+    /*
+     * Draw a single step and pause simulation
+     */
     timer->TurnOff();
     drawSingularStepLimit(limit);
+    // Draw the axis
     view->ShowAxis();
 }
 
+
+
 void Main::drawRealTime() {
+    /*
+     * Draw continously and update simulation.
+     * Disables rotation and axis.
+     * Axies are disabled because the drawing will flicker
+     * when enabling axis in real time.
+     */
+    // Using strings to get a changeable draw limit
     std::string tmp = "Main::drawSingularStepLimit(" + std::to_string(limit) + ")";
+    // Copy the string to a char array pointer
     char *tmp_c = new char[tmp.length() + 1];
     std::strcpy(tmp_c, tmp.c_str());
+    // Set the command to the newly made pointer
     timer->SetCommand(tmp_c);
+    // Time interval for each run of the function
     timer->SetTime(10);
     timer->TurnOn();
 }
 
+
+
 void Main::drawAllAfter() {
+    /*
+     * Draw a total of 10'000 steps, then pause simulation
+     */
     timer->TurnOff();
     n_steps = iteration + 10'000;
     if (iteration >= n_steps) {
@@ -295,11 +400,13 @@ void Main::drawAllAfter() {
     } else {
         while (iteration < n_steps) {
             for (pWithFunction &pStruct : planetPlotter) {
+                // For every planet, in each iteration, add the current
+                // position to the position vector
                 body::Body curBod = mod.getBodyByName(pStruct.name);
                 position p = curBod.getPos();
-                //pStruct.graph->SetPoint(iteration, p.x, p.y, p.z);
                 pStruct.posArray.push_back(p);
             }
+            // Do the iteration
             mod.iterate();
             iteration++;
             if (iteration % 1000 == 0) {
@@ -308,51 +415,54 @@ void Main::drawAllAfter() {
         }
         for (pWithFunction &pStruct : planetPlotter) {
             for (int i = 0; i < pStruct.posArray.size(); i++) {
+                // Update the graph of each planet with the new positions
                 position p = pStruct.posArray[i];
                 pStruct.graph->SetPoint(i, p.x, p.y, p.z);
             }
         }
+        // Draw the next step with a 10'000 limit
         drawSingularStepLimit(iteration);
         view->ShowAxis();
     }
-    //drawRemainder();
 }
 
 
-// Need an update function that is equal for all of them
-// , but I have that already
-void update(model::Model model) {
-    model.iterate();
-}
 
-int Main::main() {
+int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
+    /*
+     * The main function.
+     * Here all that is run only once happens. 
+     * Takes in arguments that would normally be passed to a main.
+     */
 
-
-    //canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
+    if (argc > 1) {
+        ;
+    }
+    // Redefining them here allows TApplication to be passed
+    // as an argument to the function
+    canv = new TCanvas("PLOTTER", "Plotter", 1500, 1500);
+    controls = new TCanvas("CONTROLS", "Controls");
     timer = new TTimer(0);
     view = (TView3D*) TView::CreateView(1, 0, 0);
-    mainPad = new TPad("PAD", "Pad", 0.01, 0.01, 0.99, 0.99);
 
+    // SetRealAspectRatio forces axes to have equal spacing,
+    // but disables window scaling
     canv->SetRealAspectRatio();
-    if (canv->GetAspectRatio() == 1.0) {
-        canv->SetFixedAspectRatio(true);
-    } else {
-        std::cout << "Aspect ratio not 1:1" << std::endl;
-        std::cout << "Aspect ratio: " << canv->GetAspectRatio() << std::endl;
-    }
     
+    // Init of vectors to store data in
     std::vector<std::vector<std::string>> tmpData, pNames;
     tmpData = readData();
     std::vector<std::vector<double>> planetaryData;
     planetaryData = transformData(tmpData);
     // pNames contain the name of the planet and the body it depends on
     pNames = tmpData;
+
     for (std::vector<std::string> s : pNames) {
+        // Add the planets to the foci vector, to make them focusable
         foci.push_back(s[0]);
     }
-    // TODO some magic with aphelion and parahelion to
-    // calculate position and velocity at this point
 
+    // Create buttons and draw them here
     initControlPanel();
 
     // Initiate a random number generator
@@ -371,21 +481,18 @@ int Main::main() {
         // For each row 
         // mass, aphelion, periphelion, avg orbital vel, radius, eccentricity, inclination
         double mass = planetaryData[row][0];
-        // Currently using aphelion as distance 
-        // Will be using the aphelion and finding the minumum velocity
-        // that a planet has in its orbit
-        //
-        // Rotation around the Y-axis must happen BEFORE rotation around the Z axis
+        // Setting the position along the x-axis to the aphelion / apoapsis of the body it depends on
         position pos = {planetaryData[row][1], 0, 0};
         
         // Rotation around Z axis
         double currentRotation = randRotation();
+        // Rotation around the Y-axis must happen BEFORE rotation around the Z axis
+        // Rotate inclination around Y
         pos = rotateAroundY(pos, planetaryData[row][6]);
+        // Rotate position around Z by some random amount
         pos = rotateAroundZ(pos, currentRotation);
 
         double radius = planetaryData[row][4];
-
-        
 
         // To find min velocity, we use the formulae listed at
         // https://en.wikipedia.org/wiki/Apsis#Mathematical_formulae
@@ -396,8 +503,12 @@ int Main::main() {
         velocity vel;
         std::string dependant_body = pNames[row][1];
         if (dependant_body == "none") {
+            // Only body that does not depend on another is the sun.
+            // Adding asteroids or wild objects would also fit here.
+            // Anything can be added to the system as long as it is defined in `planetaryData.csv`
             vel = {0, planetaryData[row][3], 0};
         } else {
+            // Get important values to calculate minimum velocity
             double eccentricity = planetaryData[row][5];
             double dependant_mass = mod.getBodyByName(dependant_body).getMass();
             double semi_major = (planetaryData[row][2] + planetaryData[row][1]) / 2.0;
@@ -406,46 +517,75 @@ int Main::main() {
 
             // Velocity needs to have the same rotation as the position
             vel = {0, vel_min, 0};
+            // Again, we rotate around Y first
             vel = rotateAroundY(vel, planetaryData[row][6]);
+            // By saving the rotation we used for the position, we can 
+            // use it now when we rotate the velocity around as well
             vel = rotateAroundZ(vel, currentRotation);
         
             std::cout << "Planet: " << pNames[row][0] << " minimum velocity: " << vel_min << std::endl;
+            // Add the velocity and position of the body it depends on to the current body,
+            // so that they actually orbit around said planet
             vel = plu(mod.getBodyByName(dependant_body).getVel(), vel);
             pos = plu(mod.getBodyByName(dependant_body).getPos(), pos);
             std::cout << "Position: " << pos.x << " " << pos.y << " " << pos.z << std::endl;
         }
-        // Init body and add to model
+
+        // Init body with the above found parameters, and add it to the model
         body::Body bodyToAdd = body::Body(pNames[row][0], mass, pos, vel, radius);
         mod.addBody(bodyToAdd);
 
-        //TPolyMarker3D *curPlot = new TPolyMarker3D();
+        // Create a PolyLine, and a position vector, and 
+        // add the body to the planetPlotter vector, so we
+        // can draw it at a later time
         TPolyLine3D *curPlot = new TPolyLine3D();
         curPlot->SetLineWidth(8);
         curPlot->SetLineStyle(1);
-        //curPlot->SetMarkerSize(50000);
-        //curPlot->SetMarkerStyle(50+(18*3));
         std::vector<position> pos_ = {};
         planetPlotter.push_back({pNames[row][0], pos_, curPlot});
     }
 
+    // Change to the main canvas to draw a single step
     canv->cd();
-    view->ShowAxis();
     drawStep();
 
+    // Magic that connect the root canvas, or the canvas 
+    // currently referenced to by `canv`, to the application itself.
+    // This will close the program when the main window,
+    // the one displaying the solar system, is closed
     TRootCanvas *rc = (TRootCanvas*) canv->GetCanvasImp();
     rc->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
-    app->Run();
+
+    // Equivelent to `app->run()`, but will not
+    // crash when running in a ROOT session
+    while (true) {
+        gSystem->ProcessEvents();
+    }
     return 0;
 }
 
+
+
 void run() {
-    Main program = Main();
+    /*
+     * A function that runs the main function without a TApplication.
+     * Meant to be run from ROOT, and is therefore listed in linkdef.h
+     */
+    Main program;
     program.main();
 }
 
-int main() {
-    Main program = Main();
-    program.main();
-    
+
+
+int main(int argc, char *argv[]) {
+    /*
+     * Main of the compiled program.
+     * Creates a TApplication so that
+     * the windows can be shown. 
+     */
+    Main program;
+    // Create a TApplication only when running as compiled
+    TApplication *app = new TApplication("Orbitals", 0, 0);
+    program.main(argc, argv, app);
     return 0;
 }
