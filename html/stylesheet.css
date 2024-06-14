@@ -7,13 +7,14 @@ pre code {
 
 
 div {
-    width: 1000px;
+    margin-left: 20px;
 }
 div.issues {
     font-size: 1.2em;
+    width: 1000px;
 }
 div.report {
-    font-size: 1.2em;
+    font-size: 1.3em;
 }
 
 div.linklist {

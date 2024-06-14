@@ -5,8 +5,64 @@
     </head>
     <body>
         <div class="report">
+            <h1>Simulation of planetary orbits using ROOT</h1>
+            <section id="index-list">
+                <ol>
+                    <li><a href="#index-list">Index</a></li>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li>Setup and data aquisition</li>
+                    <li>Encountered problems</li>
+                    <li><a href="#results">Results and discussion</a></li>
+                    <li><a href="#code-and-run">Code and running</a>
+                        <ol>
+                            <li><a href="#compiling">Compiling</a></li>
+                            <li><a href="#running">Running</a></li>
+                        </ol>
+                    </li>
+                </ol>
+            </section>
+            <section id="introduction">
+                <h2>Introduction</h2>
+            </section>
+            <p>
+            The program attempts to simulate the orbits of the planets in the solar system, and some major moons.
+            It does this using the velocity verlet method.
+            There are two versions of this method; one with a half step velocity, as it assumes acceleration depends on velocit, and one shortened form without the half-step.
+            Since this is planetary orbits, we know that acceleration does not depend on velocity, as there are no friction or similar that has a significant enough impact for this to matter.
+            Hence, velocity verlet can be written as 3 steps:
+            <math display="block">
+                <mrow>
+                <mi>𝒙</mi>
+                <mo>(</mo>
+                <mi>t</mi>
+                <mo>+</mo>
+                <mn>Δ</mn>
+                <mi>t</mi>
+                <mo>)</mo>
+                <mo>=</mo>
+                <mi>t</mi>
+                </mrow>
+            </math>
+            </p>
+            
+            <section id="results">
+                <h2>Results and discussion</h2>
+            </section>
+
+            <section id="code-and-run">
+                <h2>Code and running</h2>
+            </section>
+            
+            <section id="compiling">
+                <h3>Compiling</h3>
+            </section>
+            
+            <section id="running">
+                <h3>Running</h3>
+            </section>
+
+            
 
         </div>
-
     </body>
 </html>
