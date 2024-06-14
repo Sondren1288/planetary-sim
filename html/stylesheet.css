@@ -1,0 +1,27 @@
+pre code {
+  background-color: #eee;
+  border: 1px solid #999;
+  display: block;
+  padding: 15px;
+}
+
+
+div {
+    width: 1000px;
+}
+div.issues {
+    font-size: 1.2em;
+}
+div.report {
+    font-size: 1.2em;
+}
+
+div.linklist {
+    font-size: 1.5em;
+    margin: 0.5em; 
+    width: 1000px;
+}
+div.linklist.a {
+    fontsize: 1.2em;
+    margin: 1em;
+}

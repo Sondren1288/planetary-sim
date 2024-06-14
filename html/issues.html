@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="./stylesheet.css">
+    </head>
+    <body>
+        <div class="issues">
+            <h2>Running</h2>
+            <p>
+            In general, the project should compile just fine, and you should get a 
+            <code>libRootLib.so</code> and a 
+            <code>Project.out</code>.
+            If these files does not exist, then the program has to be made by calling <code>make</code> in the <code>src</code> directory.
+            The issues usually appear when you try to run <code>Projet.out</code>, as you get an eroor that should look something like
+            </p>
+            <pre><code>input_line_28:2:2: error: 'Main' is not a class, namespace, or enumeration
+ Main::someFunc()
+ ^
+input_line_28:2:2: note: 'Main' declared here</code></pre>
+            <p>
+            This is an issue when I try to run it on the ROOT version that is built in on the machines in the linux lab, 
+            but it does not appear as an issue when I run it on version 6.32.
+            I cannot tell why this happens either, because the other way of running the program,
+            <code>root libRootLib.so</code>, seems to work just fine.
+            You can confirm this yourself by either 
+            </p>
+            <pre><code>~/src$ root libRootLib.so
+// or
+~/src$ root
+root[0] .L libRootLib.so
+// and then running the program
+root[1] run()</code></pre>       
+            
+            <h2>Resizing window</h2>
+            <p>
+            If you try to resize the window, you may notice that the terminal will spam a message along the lines of
+            <pre><code>Warning in TCanvas::ResizePad: gPad has at least one zero dimension.</code></pre>
+            I am not quite sure why the canvas is unable to get its own dimensions when running in GNOME, which I assume is the perpetrator (it works in i3 just fine).
+            This warning can be safely ignored. Performance impact, however, is unknown, so I would recommend not resizing the window, but rather change it in source and rebuild, should you want other sizes.
+        </div>
+
+    </body>
+</html>
