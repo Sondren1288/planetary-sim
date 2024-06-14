@@ -452,14 +452,14 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
                       << "Should be size in pixels of main canvas. Usage:\n" 
                       << "~$ ./Project.out 700\n"
                       << "will create a main window of size 700 x 700.\n"
-                      << "Default is 1200 x 1200"
+                      << "Default is 900 x 900"
                       << std::endl;
             return 1;
         }
     } else {
         // Redefining them here allows TApplication to be passed
         // as an argument to the function
-        canv = new TCanvas("PLOTTER", "Plotter", 1200, 1200);
+        canv = new TCanvas("PLOTTER", "Plotter", 900, 900);
     }
     controls = new TCanvas("CONTROLS", "Controls");
     timer = new TTimer(0);
