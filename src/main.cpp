@@ -322,12 +322,11 @@ void Main::drawSingularStepLimit(size_t limit=500) {
             pStruct.graph->Draw("SAME");
         }
     }
-    // A Way to scale the image, should you change the size of the canvas
-    canv->SetCanvasSize(0, 0);
     // Update and draw the changes to the canvas
+    canv->Resized();
+    canv->Resize();
     canv->Modified();
     canv->Update();
-    canv->SetRealAspectRatio();
 }
 
 
@@ -578,8 +577,16 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
 
     // Equivelent to `app->run()`, but will not
     // crash when running in a ROOT session
+    int winW = canv->GetWindowWidth();
+    int winH = canv->GetWindowHeight();
     while (true) {
         gSystem->ProcessEvents();
+        if ((int) canv->GetWindowWidth() != winW || canv->GetWindowHeight() != winH) {
+            canv->SetCanvasSize(0, 0);
+            canv->SetRealAspectRatio();
+            winW = canv->GetWindowWidth();
+            winH = canv->GetWindowHeight();
+        }
     }
     return 0;
 }
