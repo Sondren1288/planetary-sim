@@ -581,7 +581,8 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
     int winH = canv->GetWindowHeight();
     while (true) {
         gSystem->ProcessEvents();
-        if ((int) canv->GetWindowWidth() != winW || canv->GetWindowHeight() != winH) {
+        // To scale window when it changes in size
+        if (canv->GetWindowWidth() != winW || canv->GetWindowHeight() != winH) {
             canv->SetCanvasSize(0, 0);
             canv->SetRealAspectRatio();
             winW = canv->GetWindowWidth();
