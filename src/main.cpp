@@ -46,10 +46,12 @@ model::Model Main::mod = model::Model(Main::deltaT);
 // How many steps each time you press the "X steps"
 int Main::n_steps = 100000;
 // Init of canvases and ROOT specific views
-TCanvas *Main::canv = new TCanvas("PLOTTER", "Plotter", 1200, 1200);
-TCanvas *Main::controls = new TCanvas("CONTROLS", "Controls");
+// We make them nullptrs because we want to have them in scope, but
+// we don't want to make an actual TCanvas before we have a TApplication
+TCanvas *Main::canv = nullptr;
+TCanvas *Main::controls = nullptr;
 TTimer *Main::timer = new TTimer(0);
-TView3D *Main::view = (TView3D*) TView::CreateView(1, 0, 0);
+TView3D *Main::view = nullptr; 
 // Some iterative and changeable values
 int Main::iteration = 0;
 double Main::outer_range = 4'540'000'000'000;
@@ -61,7 +63,7 @@ std::vector<pWithFunction> Main::planetPlotter = {};
 // Init of vector to determine focus point / view of graph
 std::vector<std::string> Main::foci = {"origo"};
 // A button to be used with the focus point
-TButton *Main::current_center = new TButton();
+TButton *Main::current_center = nullptr; 
 
 
 
