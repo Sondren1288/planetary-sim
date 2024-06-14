@@ -1,7 +1,7 @@
 DEPS := 
 DEP_FILES := main.hpp
-ROOT_DEP := $(shell root-config --glibs)
-ROOT_DEP_2 := $(shell root-config --cflags)
+ROOT_GLIBS := $(shell root-config --glibs)
+ROOT_CFLAGS := $(shell root-config --cflags)
 ROOT_LIBS := $(shell root-config --libs)
 NAME := Project
 DEBUG := Debug
@@ -12,13 +12,13 @@ dict_output.cxx: $(DEP_FILES) linkdef.h
 	rootcling -f $@ $^ 
 
 libRootLib.so: dict_output.cxx $(DEPS) main.cpp
-	g++ -shared -g -fPIC -o $@ $(ROOT_DEP_2) -I"./" $(ROOT_DEP) $(ROOT_LIBS) $^ 
+	g++ -shared -g -fPIC -o $@ $^ -I./ $(ROOT_GLIBS) $(ROOT_LIBS) $(ROOT_CFLAGS) 
 
 $(NAME).out: main.cpp $(DEPS) libRootLib.so
-	g++ main.cpp -o $(NAME).out $(DEPS) $(DEP_FILES) $(ROOT_DEP) $(ROOT_DEP_2) libRootLib.so
+	g++ main.cpp -o $(NAME).out $(DEPS) $(DEP_FILES) $(ROOT_GLIBS) $(ROOT_CFLAGS) libRootLib.so
 
 $(DEBUG).debug: main.cpp $(DEPS) libRootLib.so
-	g++ main.cpp -g -o $(DEBUG).debug $(DEPS) $(DEP_FILES) $(ROOT_DEP) $(ROOT_DEP_2) libRootLib.so
+	g++ main.cpp -g -o $(DEBUG).debug $(DEPS) $(DEP_FILES) $(ROOT_GLIBS) $(ROOT_CFLAGS) libRootLib.so
 
 
 all: $(NAME).out $(DEBUG).debug 
