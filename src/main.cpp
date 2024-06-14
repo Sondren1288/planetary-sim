@@ -322,12 +322,12 @@ void Main::drawSingularStepLimit(size_t limit=500) {
             pStruct.graph->Draw("SAME");
         }
     }
+    // A Way to scale the image, should you change the size of the canvas
+    canv->SetCanvasSize(0, 0);
     // Update and draw the changes to the canvas
     canv->Modified();
     canv->Update();
-    canv->ResizePad();
-    canv->Resize();
-    view->ResizePad();
+    canv->SetRealAspectRatio();
 }
 
 
@@ -465,9 +465,6 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
     timer = new TTimer(0);
     view = (TView3D*) TView::CreateView(1, 0, 0);
 
-    // SetRealAspectRatio forces axes to have equal spacing,
-    // but disables window scaling
-    canv->SetRealAspectRatio();
     
     // Init of vectors to store data in
     std::vector<std::vector<std::string>> tmpData, pNames;
@@ -568,6 +565,9 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
     // Change to the main canvas to draw a single step
     canv->cd();
     drawStep();
+    // SetRealAspectRatio forces axes to have equal spacing,
+    // but disables window scaling
+    canv->SetRealAspectRatio();
 
     // Magic that connect the root canvas, or the canvas 
     // currently referenced to by `canv`, to the application itself.
