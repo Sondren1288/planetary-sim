@@ -10,7 +10,7 @@
                 <ol>
                     <li><a href="#index-list">Index</a></li>
                     <li><a href="#introduction">Introduction</a></li>
-                    <li>Setup and data aquisition</li>
+                    <li><a href="#data-and-setup">Data and setup</a></li>
                     <li>Encountered problems</li>
                     <li><a href="#results">Results and discussion</a></li>
                     <li><a href="#code-and-run">Code and running</a>
@@ -30,24 +30,180 @@
             There are two versions of this method; one with a half step velocity, as it assumes acceleration depends on velocit, and one shortened form without the half-step.
             Since this is planetary orbits, we know that acceleration does not depend on velocity, as there are no friction or similar that has a significant enough impact for this to matter.
             Hence, velocity verlet can be written as 3 steps:
+            </p>
+            <div class="mathlist">
+            <ol>
+            <li>
             <math display="block">
                 <mrow>
-                <mi>𝒙</mi>
-                <mo>(</mo>
-                <mi>t</mi>
-                <mo>+</mo>
-                <mn>Δ</mn>
-                <mi>t</mi>
-                <mo>)</mo>
-                <mo>=</mo>
-                <mi>t</mi>
+                    <mi>𝒙</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mo>+</mo>
+                    <mn>Δ</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                    <mo>=</mo>
+                    <mi>𝒙</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                    <mo>+</mo>
+                    <mi>𝒗</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                    <mn>Δ</mn>
+                    <mi>t</mi>
+                    <mo>+</mo>
+                    <mfrac><mn>1</mn><mn>2</mn></mfrac>
+                    <mi>𝒂</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                    <mn>Δ</mn>
+                    <msup>
+                        <mi>t</mi>
+                        <mn>2</mn>
+                    </msup>
                 </mrow>
             </math>
+            </li>
+            <li>
+            <math display="block">
+                <mrow>
+                <mi>Find the acceleration, </mi>
+                    <mi>𝒂</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mo>+</mo>
+                    <mn>Δ</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                <mi> based on the forces acting on </mi>
+                    <mi>𝒙</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mo>+</mo>
+                    <mn>Δ</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                </mrow>
+            </math>
+            </li>
+            <li>
+            <math display="block">
+                <mrow>
+                    <mi>𝒗</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mo>+</mo>
+                    <mn>Δ</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                    <mo>=</mo>
+                    <mi>𝒗</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                    <mo>+</mo>
+                    <mfrac><mn>1</mn><mn>2</mn></mfrac>
+                    <mn>[</mn>
+                    <mi>𝒂</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                    <mo>+</mo>
+                    <mi>𝒂</mi>
+                    <mn>(</mn>
+                    <mi>t</mi>
+                    <mo>+</mo>
+                    <mn>Δ</mn>
+                    <mi>t</mi>
+                    <mn>)</mn>
+                    <mn>]</mn>
+                    <mn>Δ</mn>
+                    <mi>t</mi>
+                </mrow>
+            </math>
+            </li>
+            </ol>
+            </div>
+            <p>
+            In other words, find the new position of the body after 
+            Δ<i>t</i> time, using the current velocity and acceleration of the body.
+            Then, find the acceleration after
+            Δ<i>t</i> time using the interactions between the bodies (in this case gravitational attraction) at their new positions.
+            Lastly, find the velocity after Δ<i>t</i> time using the average of the accelerations at the current time and after Δ<i>t</i> time.
+            </p>
+            
+            <section id="data-and-setup">
+                <h2>Data and setup</h2>
+            </section>
+            <p>
+            The data was taken from the wikipedia pages of the respective celestial bodies, and stored in a csv-file.
+            The csv-file is <code>src/planetaryData.csv</code>, and it contains
+            </p>
+            <ol>
+                <li>The name of the body</li>
+                <li>The mass of the body, in kg</li>
+                <li>The aphelion, or apoapsis of the body, if it has one</li>
+                <li>The perihelion, or periapsis of the body, if it has one</li>
+                <li>The average orbital speed in meters per second (only used for bodies that does not orbit another)</li>
+                <li>The radius of the body in meters</li>
+                <li>The eccentricity of the orbit of the body</li>
+                <li>The name of the body it orbits</li>
+                <li>The inclination of the body, as compared to the ecliptic orbit (the orbital plane of the earth) in degrees</li>
+            </ol>
+            <p>
+            The minimal velocity was found at the apocenter using the eccentricity and the semi major axis. A more in-depth explanation can be found at <a href="https://en.wikipedia.org/wiki/Apsis#Mathematical_formulae">wikipedia</a>.
+            In short,
+            <math display="block">
+                <mrow>
+                    <msub>
+                        <mi>v</mi>
+                        <mn>ap</mn>
+                    </msub>
+                    <mo>=</mo>
+                    <msqrt>
+                        <mfrac>
+                            <mrow>
+                                <mn>(</mn>
+                                <mn>1</mn>
+                                <mo>-</mo>
+                                <mi>e</mi>
+                                <mn>)</mn>
+                                <mi>𝜇</mi>
+                            </mrow>
+                            <mrow>
+                                <mn>(</mn>
+                                <mn>1</mn>
+                                <mo>+</mo>
+                                <mi>e</mi>
+                                <mn>)</mn>
+                                <mi>𝑎</mi>
+                            </mrow>
+                        </mfrac>
+                    </msqrt>
+                </mrow>
+            </math>
+            where 𝜇 is the standard gravitational parameter (mass of the orbiting body and the orbited body multiplied by the gravitational constant),
+            and 𝑎 is the semi-major axis, and <i>e</i> is the eccentricity of the orbit.
             </p>
             
             <section id="results">
                 <h2>Results and discussion</h2>
             </section>
+            <div>
+                <img src="../src/graphics/changeFocus.gif" alt="Change of focus" style="width:49%;float:left;">
+                <img src="../src/graphics/normalOrbit.gif" alt="Normal orbit" style="width:49%;float:left;">
+            </div>
+            <div>
+                <center>
+                    <img src="../src/graphics/jupiterOrbit.gif" alt="Jupiter and moons" style="width:60%;float:center;">
+                </center>
+            </div>
+
 
             <section id="code-and-run">
                 <h2>Code and running</h2>

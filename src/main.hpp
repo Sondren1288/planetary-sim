@@ -79,4 +79,5 @@ class Main {
 // If `run` was only defined in `main.cpp`, then it would not
 // be visible in `linkdef.h` 
 void run();
+void demo();
 #endif

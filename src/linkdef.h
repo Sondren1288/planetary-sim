@@ -15,5 +15,6 @@
 #pragma link C++ class Main+;
 
 #pragma link C++ function run();
+#pragma link C++ function demo();
 
 #endif

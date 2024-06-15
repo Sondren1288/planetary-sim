@@ -555,7 +555,7 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
         // add the body to the planetPlotter vector, so we
         // can draw it at a later time
         TPolyLine3D *curPlot = new TPolyLine3D();
-        curPlot->SetLineWidth(8);
+        curPlot->SetLineWidth(5);
         curPlot->SetLineStyle(1);
         std::vector<position> pos_ = {};
         planetPlotter.push_back({pNames[row][0], pos_, curPlot});
@@ -574,6 +574,85 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
     // the one displaying the solar system, is closed
     TRootCanvas *rc = (TRootCanvas*) canv->GetCanvasImp();
     rc->Connect("CloseWindow()", "TApplication", gApplication, "Terminate()");
+
+    // Only runs in demo mode. Creates gifs, but is quite cost-heavy.
+    char *demo = new char[] {'d','e','m','o'};
+    if (argc > 2 && **(argv+2) == *demo) {
+
+        // Make tails
+        for (int iter = 0; iter < 600; iter++) {
+            drawSingularStepLimit();
+        }
+
+        // Draw simply from solar system
+        zoom_factor =  0.6;
+        for (int iter = 0; iter < 100; iter++) {
+            for (int jter = 0; jter < 200; jter++) {
+                mod.iterate();
+            }
+            drawSingularStepLimit();
+            view->ShowAxis();
+            canv->Print("graphics/normalOrbit.gif+10");
+        }
+        canv->Print("graphics/normalOrbit.gif++10++");
+
+
+        // Demonstrate focus change
+        for (int iter = 0; iter < 150; iter++) {
+            for (int jter = 0; jter < 20; jter++) {
+                mod.iterate();
+            }
+            if (iter % 15 == 0) {
+                changeFocus();
+                zoomIn();
+                zoomIn();
+                zoomIn();
+            }
+            drawSingularStepLimit();
+            view->ShowAxis();
+            canv->Print("graphics/changeFocus.gif+5");
+        }
+        canv->Print("graphics/changeFocus.gif++5++");
+
+        // Jupiter orbitals
+        while (strcmp(current_center->GetTitle(), "jupiter") != 0) {
+            changeFocus();
+        }
+        // Zoom in to jupiter and moons
+        zoom_factor =  0.0005;
+        // Rotate view to be flat
+        view->RotateView(0, 90, 0);
+        for (int iter = 0; iter < 200; iter++) {
+            // Get rid of lines that appear after zooming
+            drawSingularStepLimit();
+        }
+        // Draw 50 times while flat
+        for (int iter = 0; iter < 70; iter++) {
+            mod.iterate();
+            drawSingularStepLimit();
+            view->ShowAxis();
+            canv->Print("graphics/jupiterOrbit.gif+4");
+        }
+        double tilt = 90.0 / 119.0;
+        // Slowly climb to top view
+        for (int iter = 0; iter < 120; iter++) {
+            mod.iterate();
+            drawSingularStepLimit();
+            view->RotateView(0, 90+iter*tilt, 0);
+            view->ShowAxis();
+            canv->Print("graphics/jupiterOrbit.gif+4");
+        }
+        // Draw 50 times from top viw
+        for (int iter = 0; iter < 70; iter++) {
+            mod.iterate();
+            drawSingularStepLimit();
+            view->ShowAxis();
+            canv->Print("graphics/jupiterOrbit.gif+4");
+        }
+        canv->Print("graphics/jupiterOrbit.gif++10++");
+
+        return 0;
+    }
 
     // Equivelent to `app->run()`, but will not
     // crash when running in a ROOT session
@@ -605,6 +684,20 @@ void run() {
 
 
 
+void demo() {
+    /*
+     *
+     */
+    Main program;
+    int argc = 3;
+    char a = 'p'; 
+    char *size = new char[] {'9','0','0'};
+    char *demo = new char[] {'d','e','m','o'};
+    char *argv[] = {&a, size, demo};
+    program.main(argc, argv);
+}
+
+
 int main(int argc, char *argv[]) {
     /*
      * Main of the compiled program.
@@ -614,7 +707,10 @@ int main(int argc, char *argv[]) {
     Main program;
     // Create a TApplication only when running as compiled
     TApplication *app = new TApplication("Orbitals", 0, 0);
-    int ret = program.main(argc, argv, app);
+    //int ret = program.main(argc, argv, app);
+    demo();
     app->Delete();
-    return ret;
+    return 0;
+    //return ret;
 }
+
