@@ -695,7 +695,7 @@ void demo() {
     Main program;
     int argc = 3;
     char a = 'p'; 
-    char *size = new char[] {'9','0','0'};
+    char *size = new char[] {'1','0','0','0'};
     char *demo = new char[] {'d','e','m','o'};
     char *argv[] = {&a, size, demo};
     program.main(argc, argv);
