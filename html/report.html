@@ -11,12 +11,17 @@
                     <li><a href="#index-list">Index</a></li>
                     <li><a href="#introduction">Introduction</a></li>
                     <li><a href="#data-and-setup">Data and setup</a></li>
-                    <li>Encountered problems</li>
-                    <li><a href="#results">Results and discussion</a></li>
+                    <li><a href="#results-and-disc">Results and discussion</a>
+                        <ol>
+                            <li><a href="#discussion">Discussion</a></li>
+                            <li><a href="#results">Results</a></li>
+                        </ol>
+                    </li>
                     <li><a href="#code-and-run">Code and running</a>
                         <ol>
                             <li><a href="#compiling">Compiling</a></li>
                             <li><a href="#running">Running</a></li>
+                            <li><a href="#code">Code</a></li>
                         </ol>
                     </li>
                 </ol>
@@ -191,34 +196,197 @@
             and 𝑎 is the semi-major axis, and <i>e</i> is the eccentricity of the orbit.
             </p>
             
-            <section id="results">
+            <section id="results-and-disc">
                 <h2>Results and discussion</h2>
             </section>
+            <section id="discussion">
+                <h3>Discussion</h3>
+            </section>
             <div>
-                <img src="../src/graphics/changeFocus.gif" alt="Change of focus" style="width:49%;float:left;">
-                <img src="../src/graphics/normalOrbit.gif" alt="Normal orbit" style="width:49%;float:left;">
+                <p>
+                There are som balancing that needed to be done when creating this type of simulation.
+                One is speed.
+                Calculating the positions, velocities, and accelerations of all these object can be demanding of a computer,
+                and the more bodies that are added, the heavier the calculations get.
+                At the same time, deciding how long the time-difference between each simulation step should be is also impactful, 
+                as a lowe time difference creates better accuracy and nicer tails, a higher time-step significantly speeds up the orbits of the bodies.
+                A low time step means we have to wait many iterations before a single year passes, or a single orbit passes.
+                The difference I ended up on is 1 hour per step.
+                However, accuracy is doubled, as the model does 2 iterations with half the time-difference, as the most compute intensive part of this program is drawing to the screen.
+                This is because, should the accuracy become too low, some of the moons orbiting too close to other bodies will get so close that they launch out of the solar system approaching the speed of light.
+                As this model is not made to handle collisions between bodies, the accuracy has to be high enough that orbits are maintained without ever getting too close to the orbited body.
+
+                <br>
+                <br>
+                There are also some falsehood in the model.
+                The rotation of the planets' orbits are not determined by their actual orbital rotation, but randomly generated.
+                This means that planets' aphelion and parahelion are not where they are in relation to each other in real life, but rather randomly choses so as to not make all planets lie on a line.
+
+                The same is true for the satellites of the bodies.
+                These are also randomly rotated around the planet, to ensure they don't lie on a line.
+                This works, and provides a generally accurate view of one state the solar system could have been in, but it is not true to life. 
+
+                </p>
             </div>
+            <section id="results">
+                <h3>Results</h3>
+            </section>
             <div>
-                <center>
-                    <img src="../src/graphics/jupiterOrbit.gif" alt="Jupiter and moons" style="width:60%;float:center;">
-                </center>
+                <p>
+                The model is accurate enough to apprecieate orbits and observe the planets for a significant number of iterations.
+                After decreasing the time between each step, the model has yet to launch satellites at interstellar speeds. 
+                We can therefore conclude that, to a certain extent, the velocity verlet method, is accurate enough to use when concerned about orbits of planetary bodies.
+
+                </p>
+            </div>
+            <div class="wrapper">
+            <div class="image" style="max-width:50%;">
+                <img src="../src/graphics/changeFocus.gif" alt="Change of focus">
+                <p>
+                Demonstration of changing focus between the planets and moons.
+                Notice how it also zooms in.
+                </p>
+            </div>
+            <div class="image" style="max-width:50%;">
+                <img src="../src/graphics/normalOrbit.gif" alt="Normal orbit">
+                <p>
+                A timelapse of the planets and their moons orbiting the Sun.
+                The trails of the planets can only be so long before they disappear.
+                </p>
+            </div>
+            <div class="image" style="aspect-ratio:4/3">
+                <img src="../src/graphics/jupiterOrbit.gif" alt="Jupiter and moons" style="width:60%;float:center;">
+                <p>
+                Jupiter and its major satellites. The view goes from the ecliptic plane, to a top down view. 
+                </p>
+                    
+            </div>
             </div>
 
 
+            <br style="clear: both;">
             <section id="code-and-run">
                 <h2>Code and running</h2>
             </section>
-            
             <section id="compiling">
                 <h3>Compiling</h3>
             </section>
-            
+            <p>
+            Compiling the code should be relatively straight forward.
+            It assumes, however, that <code>g++</code>, <code>GNU Make</code>, and <code>ROOT</code> is installed.
+            Then, simply move into the <code>src</code> directory and type <code>make</code>.
+            This should then generate 
+            </p>
+            <pre><code>- dict_output.cxx
+- dict_output_rdict.pcm
+- libRootLib.so
+- Project.out</code></pre>
+            <p>
+
             <section id="running">
                 <h3>Running</h3>
             </section>
-
+            There are several ways of running the program.
+            The simplest is to from the command line run
+            <pre><code>~$ ./Project.out &lt;resolution&gt;</code></pre>
+            If this does not work, or you get errors when trying to run the program, please refer to the <a href="./issues.html">issues</a> document.
+            The resolution option is optional, as there is a default of 900x900 pixels resolution of the window.
+            This option exists because for some reason, the machines in the linux lab does not correctly give <code>ROOT</code> the window witdth, so the window cannot be rescaled through <code>ROOT</code>, and hence the canvas cannot be redrawn on a smaller or larger surface.
             
+            <br>
+            <br>
+            Another way is to launch the program through root, by loading the <code>libRootLib.so</code> file.
+            This can be done in two ways:
+            <pre><code>~$ root libRootLib.so
+   // or
+~$ root
+root [0] .L libRootLib.so
+   // In either case, to start the simulation, execute run()
+root [1] run();</code></pre>
+            Should neither of these work, there is always the backup, uncompiled version.
+            The easiest way to run this is to copy the text in <code>rootLoader</code> and paste it into a running session of <code>ROOT</code>.
+            This will look something like
+            <pre><code>root [0] .L Constants.hpp
+root [1] .L body.cpp
+root [2] .L model.cpp
+root [3] .L types.hpp
+root [4] .L main.cpp
+root [5] </code></pre>
+            <p>
+            Be aware that root may ask you whether you would like to sanitize your input, not sanitize, or cancel pasting.
+            It is recommended to not sanitize, as it removes the newlines, meaning it does not execute each load.
+            After importing the needed files as just shown, simply execute the same <code>run()</code> as in the other examples, to get the program to run.
+            </p>
 
+            <section id="code">
+                <h3>About the code</h3>
+            </section>
+            <p>
+            There is a lot of code in these files, and a lot of code to go through.
+            There have therefore been an attempt to organize the code into classes and different modules.
+            It is recommended to use a code editor that can collapse functions, so as to not display all lines at the same time.
+            It is, however, not necessary.
+        
+            <br>
+            <br>
+            The code is divided into 4 main parts.
+            These are
+            <pre><code>- main.cpp
+- main.hpp
+
+- types.cpp
+- types.hpp
+
+- model.cpp
+- model.hpp
+
+- body.cpp
+- body.hpp</code></pre>
+            <p>
+            Generally, <code>main</code> is the only file that contains any modules from <code>ROOT</code>.
+            This is also where all interactions out of the program take place, with functions like <code>readData</code>, and <code>run()</code>.
+            If you take a look at the difference between <code>run()</code> and <code>main()</code> functions, you would see that they are generally quite similar.
+            The only real difference is that <code>main()</code> passes an argument to <code>Main::main()</code>.
+            This is to allow the program to set resolution when run with <code>./Project.out</code>.
+            Both of them also call <code>Main::main()</code>, and this has to do with why we need a class to encompass a <code>main</code> function in the first place.
+            This will be explained in further detail in <a href="./linkdef.html">linkdef</a>.
+            For some general details
+            <ul>
+                <li><code>body</code> contains functions and class that relate to what you expect from a planet or celestial body
+                    <ul>
+                        <li>Mass</li>
+                        <li>Velocity</li>
+                        <li>Position</li>
+                        <li>Calculating new position based on velocity</li>
+                        <li>Get force interacting between 2 bodies</li>
+                    </ul>
+                </li>
+                <li><code>model</code> contains functions that pertain to the system as a whole
+                    <ul>
+                        <li>Iterating one step</li>
+                        <li>Velocity verlet</li>
+                        <li>Updating positions of all planets</li>
+                        <li>Adding and removing bodies from the simulation</li>
+                    </ul>
+                </li>
+                <li><code>types</code> contains simple functions and <code>struct</code>s for working with 3D vectors
+                    <ul>
+                        <li>Rotation around axies</li>
+                        <li>Definition of <code>force, velocity, position</code></li>
+                        <li>Multiplication and addition of 3D vectors</li>
+                    </ul>
+                </li>
+                <li><code>main</code> with functions for running and interacting with the user, as well as setup
+                    <ul>
+                        <li><code>readData()</code> which reads from the <code>csv</code></li>
+                        <li><code>initControlpanel()</code> which draws and create the control panel for controlling the view</li>
+                        <li>Initializing canvases and <code>TApplication</code>, which is required to get any windows when not running through <code>ROOT</code></li>
+                        <li>The main draw-function, <code>drawSingularStepLimit()</code>. Here most drawing logic is stored</li>
+                        <li>The main event loop in <code>Main::main()</code>, which polls events from <code>gSystem</code></li>
+                        <li>The <code>demo()</code> function, that creates a demo with gifs stored in <code>src/graphics/</code>. These are the same that are used on this website</li>
+                    </ul>
+                </li>
+            </ul>
         </div>
     </body>
 </html>

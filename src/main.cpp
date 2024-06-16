@@ -581,12 +581,15 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
 
         // Make tails
         for (int iter = 0; iter < 600; iter++) {
+            for (int jter = 0; jter < 200; jter++) {
+                mod.iterate();
+            }
             drawSingularStepLimit();
         }
 
         // Draw simply from solar system
         zoom_factor =  0.6;
-        for (int iter = 0; iter < 100; iter++) {
+        for (int iter = 0; iter < 200; iter++) {
             for (int jter = 0; jter < 200; jter++) {
                 mod.iterate();
             }
@@ -598,11 +601,11 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
 
 
         // Demonstrate focus change
-        for (int iter = 0; iter < 150; iter++) {
+        for (int iter = 0; iter < 200; iter++) {
             for (int jter = 0; jter < 20; jter++) {
                 mod.iterate();
             }
-            if (iter % 15 == 0) {
+            if (iter % 20 == 0) {
                 changeFocus();
                 zoomIn();
                 zoomIn();
@@ -621,29 +624,30 @@ int Main::main(int argc = 0, char *argv[] = {}, TApplication *app = nullptr) {
         // Zoom in to jupiter and moons
         zoom_factor =  0.0005;
         // Rotate view to be flat
-        view->RotateView(0, 90, 0);
+        view->RotateView(45, 90, 0);
         for (int iter = 0; iter < 200; iter++) {
             // Get rid of lines that appear after zooming
             drawSingularStepLimit();
         }
+        view->RotateView(45, 90, 0);
         // Draw 50 times while flat
-        for (int iter = 0; iter < 70; iter++) {
+        for (int iter = 0; iter < 100; iter++) {
             mod.iterate();
             drawSingularStepLimit();
             view->ShowAxis();
             canv->Print("graphics/jupiterOrbit.gif+4");
         }
-        double tilt = 90.0 / 119.0;
+        double tilt = 90.0 / 199.0;
         // Slowly climb to top view
-        for (int iter = 0; iter < 120; iter++) {
+        for (int iter = 0; iter < 200; iter++) {
             mod.iterate();
             drawSingularStepLimit();
-            view->RotateView(0, 90+iter*tilt, 0);
+            view->RotateView(45, 90+iter*tilt, 0);
             view->ShowAxis();
             canv->Print("graphics/jupiterOrbit.gif+4");
         }
         // Draw 50 times from top viw
-        for (int iter = 0; iter < 70; iter++) {
+        for (int iter = 0; iter < 100; iter++) {
             mod.iterate();
             drawSingularStepLimit();
             view->ShowAxis();
@@ -707,10 +711,8 @@ int main(int argc, char *argv[]) {
     Main program;
     // Create a TApplication only when running as compiled
     TApplication *app = new TApplication("Orbitals", 0, 0);
-    //int ret = program.main(argc, argv, app);
-    demo();
+    int ret = program.main(argc, argv, app);
     app->Delete();
-    return 0;
-    //return ret;
+    return ret;
 }
 

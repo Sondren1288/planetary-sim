@@ -25,6 +25,27 @@ div.mathlist math {
     overflow: auto;
 }
 
+div.wrapper {
+    width: 90%;
+    padding: 10px;
+}
+
+div.image {
+    aspect-ratio: 1/1;
+    margin: 0px; 
+    padding-top: 15px;
+    background-color: rgba(0,0,0,0);
+    float: left;
+    font-size: 0.9em;
+    text-align: center;
+}
+div.image img {
+    border: 1px solid #000000;
+    max-height: 90%;
+    padding: 0px;
+    margin: 0px;
+}
+
 div.linklist {
     font-size: 1.5em;
     margin: 0.5em; 

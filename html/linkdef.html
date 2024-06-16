@@ -3,7 +3,198 @@
     <head>
         <link rel="stylesheet" href="./stylesheet.css">
     </head>
-    <body>
+    <body><div class="issues">
+        <h1>On <code>linkdef.h</code> and compiling <code>ROOT</code> as standalone</h1>
+        There is another folder, called <code>rootCompileTest</code>.
+        This file contains a relatively simple <code>main</code>, that simply draws 2 buttons and prints output to the terminal when pressed.
+        As a result, the <code>linkdef.h</code> is also quite simple:
+        <pre><code>#if defined(__CLING__)
 
+#pragma link C++ nestedclasses;
+#pragma link C++ nestedtypedefs;
+
+#include "main.hpp"
+
+#pragma link C++ class Main;
+
+#pragma link C++ function someFunc();
+#pragma link C++ function run();
+
+#endif</code></pre>
+        This is the most important file to get <code>ROOT</code> to recognize functions made in other programs, after it has been compiled.
+        For a compiled program to be able to launch functions outside of <code>ROOT</code> with buttons, or other commands, then this file is essential.
+        The <code>nestedclasses</code> and <code>nestedtypedefs</code> are necessary for some cases, but it is in general a good idea to include them.
+        <code>#include "main.hpp"</code> is very important, as it makes functions and classes defined in <code>main.hpp</code> available to the file in general.
+        Without it, we could not do <code>#pragma link C++ class Main;</code>.
+        If we take a look at <code>main.hpp</code>
+        <pre><code>#ifndef MAIN_CLASS
+#define MAIN_CLASS
+
+
+#include <TApplication.h>
+
+class Main {
+    public:
+        void static someFunc();
+        void static run(TApplication *app);
+};
+void someFunc();
+void run();
+
+#endif</code></pre>
+        First we define a <code>MAIN_CLASS</code>.
+        This tells the compiler to only run this section once.
+        It is a good idea to alway do this, but it should compile fine without it.
+        Next we see the creation of some class called <code>Main</code>, but the name is not important, as long as it is consistent between <code>linkdef.h, main.hpp</code> and <code>main.cpp</code>.
+        We also define some functions, one <code>someFunc()</code> and one <code>run()</code>.
+        If you look back to the code from <code>linkdef.h</code>, we see we link some functions with <code>#pragma link C++ function someFunc();</code>.
+        For these functions to be linkeable they <i>have</i> to be defined in <code>main.hpp</code> or somewhere else that is included in linkdef, even if what the function does is not declared before in the <code>main.cpp</code>.
+        Again, <code>main.hpp, main.cpp, someFunc()</code> and <code>run()</code> are arbitrary names.
+        The thing that matters is that it is consistent.
+        Below is the code for <code>main.cpp</code>, without the <code>#include</code> that is a the top.
+        <pre><code>#include "main.hpp"
+
+//TCanvas *Main::canv = new TCanvas();
+
+void Main::someFunc() {
+    std::cout << "Pressed" << std::endl;
+}
+
+void someFunc() {
+    std::cout << "Other pressed" << std::endl;
+}
+
+void Main::run(TApplication *app = nullptr) {
+    
+    TCanvas *canv = new TCanvas();
+    canv->cd();
+    TButton *but = new TButton("P1", "Main::someFunc()", 0.1, 0.1, 0.45, 0.9);
+    TButton *but2 = new TButton("P2", "someFunc()", 0.55, 0.1, 0.9, 0.9);
+    but->Draw();
+    but2->Draw();
+    while (1) {
+        gSystem->ProcessEvents();
+    }
+    if (nullptr != app) {
+        app->Run();
+    }
+}
+
+void run() {
+    Main::run();
+};
+
+int main() {
+    TApplication *app = new TApplication("App", 0, 0);
+    Main::run(app);
+    return 0;
+}</code></pre>
+        Here we can see the <code>run()</code> function gets a meaning, as well as <code>someFunc()</code>.
+        Please also notice that there is a function <code>Main::someFunc()</code> that does essentially the same, but it is not explicitly stated in <code>linkdef.h</code>.
+        This is because we defined the class <code>#pragma link C++ class Main;</code>, as well as the <code>#pragma link C++ nestedclasses;</code>.
+        We therefore do not need to explicitly state which functions from classes should be included when compiling with the <code>linkdef.h</code>.
+        If you still wonder why we do this, it is to be able to use the <code>TButton("P1), "Main::someFunc()");</code> without getting errors, like
+        <pre><code>input_line_28:2:2: error: 'Main' is not a class, namespace, or enumeration
+ Main::someFunc()
+ ^
+input_line_28:2:2: note: 'Main' declared here</code></pre>
+        For more details about these, see <a href="./issues.html">issues</a>.
+
+
+        <h2>Makefile</h2>
+        The makefile is relatively messy, so let's do this one in parts.
+        Be aware that sometimes order matters, so if it does not work, check if the order of the arguments are correct.
+        <pre><code>DEPS := 
+DEP_FILES := main.hpp
+ROOT_GLIBS := $(shell root-config --glibs)
+ROOT_CFLAGS := $(shell root-config --cflags)
+ROOT_LIBS := $(shell root-config --libs)
+NAME := Project
+DEBUG := Debug</code></pre>
+        The first line is currently empty.
+        If you look at the makefile in <code>src</code> you will see that this file contains all the <code>.cpp</code> files.
+        These are the files that your compiled program relies on.
+        The second line, <code>DEP_FILES</code> should contain all the files your <code>linkdef.h</code> uses.
+        Here, this is just <code>main.hpp</code>, but it could be more files as well.
+        The next 3 lines contain important flags and include-libraries for <code>ROOT</code>.
+        You can check what these are by writing them in the shell like
+        <pre><code>~$ root-config --glibs</code></pre>
+        The next 2 lines are the name of the output file, and then the name of the debug file.
+        Having a debug file is not strictly necessary, but it is useful when trying to figure out where your program crashes.
+
+        <br>
+        <br>
+        The next lines are
+        <pre><code>default: dict_output.cxx libRootLib.so $(NAME).out
+
+dict_output.cxx: $(DEP_FILES) linkdef.h
+	rootcling -f $@ $^</code></pre>
+        The <code>default: dict_output.cxx libRootLib.so $(NAME).out</code> will be the "default" target for compiling, not because it is called default but because it is the first line that is not a declaration.
+        It will also try to compile the 3 listed targets, <code>dict_output.cxx, libRootLib.so</code> and <code>$(NAME).out</code>.
+        Writing <code>$(NAME)</code> is a way to get the value we gave to the variable.
+        Had the name only been one letter long, we would not need the parenthesis, but as we defined the name as <code>NAME</code>, we need to envelop it in a parenthesis.
+        Then comes the first target; <code>dict_output.cxx</code>.
+        The things that appear after the colon are the files <code>make</code> will check for changes in when compiling.
+        If no changes were made since last time this target was compiled, then it will skip this target, as it assumes it is still up to date.
+        You can force it to recompile with <code>make -B</code> in the terminal.
+        <pre><code>rootcling -f $@ $^</code></pre>
+        is what compiles the dictionaries that <code>ROOT</code> uses.
+        <code>$@</code> is simply copying the name that is the target, or <code>dict_output.cxx</code>.
+        <code>$^</code> is a copy of whatever is on the right of the colon.
+        In this case, that is <code>$(DEP_FILES)</code> and <code>linkdef.h</Code>.
+        When <code>make</code> runs this line, what it really writes is
+        <pre><code>rootcling -f dict_output.cxx main.hpp linkdef.h</code></pre>
+        
+        <br>
+        <br>
+        The following 2 lines make the <code>libRootLib.so</code> that is used when running the program throug <code>ROOT</code>, and when compiled to an executable.
+        <pre><code>libRootLib.so: dict_output.cxx $(DEPS) main.cpp
+    g++ -shared -g -fPIC -o $@ $^ -I./ $(ROOT_GLIBS) $(ROOT_LIBS) $(ROOT_CFLAGS) </code></pre>
+        This time it is compiled with <code>g++</code> instead of <code>rootcling</code>.
+        <code>-shared</code> is a linking option, while <code>-g</code> tells the compiler to keep original names in the compiled binary.
+        You will also see this flag in the debug target.
+        This is so that one can stop at breakpoints and see where in the code the execution is actually happening.
+        I suspect it is requires so that <code>ROOT</code> know which part of the code to run when you call a function, but this is pure speculation.
+        <code>-fPIC</code> means that the code is position independent.
+        For more information on what this means, see the man page for <code>g++</code>, or <a href="https://en.wikipedia.org/wiki/Position-independent_code">wikipedia</a>.
+        In short, it is useful for shared libraries.
+        <code>-o</code> simply states that "now comes the outputfile", and it is, in this case called <code>libRootLib.so</code>, as we can see from the symbol <code>$@</code>.
+        Notice how here we also include the <code>main.cpp</code> and the output from the previous target, <code>dict_output.cxx</code>, as well as <code>DEPS</code>.
+        <code>DEPS</code> was all the <code>.cpp</code> files, and is where the executable code is actually stored.
+        <code>.hpp</code>, or header files, are generally only declarations.
+        The last parts are generally libraries and similar needed by <code>ROOT</code>, like include libraries and compilation flags.
+
+
+        <br>
+        <br>
+        The next 2 lines are 
+        <pre><code>$(NAME).out: main.cpp $(DEPS) libRootLib.so
+    g++ main.cpp -o $(NAME).out $(DEPS) $(DEP_FILES) $(ROOT_GLIBS) $(ROOT_CFLAGS) libRootLib.so</code></pre>
+        This is the part that compiles the runnable program.
+        Here we also need the previous target, <code>libRootLib.so</code> to compile it, as this is the library that <code>ROOT</code> will read from when executing your custom functions.
+
+        <br>
+        <br>
+        The last lines are small changes.
+        The debug section is for running with debugging programs such as <code>gdb</code>.
+        <code>clean</code> is a target to remove files when they are no longer needed, or for general use.
+        This can be expanded if desired, to include the <code>libRootLib.so</code> and dictionaries.
+        <pre><code>$(DEBUG).debug: main.cpp $(DEPS) libRootLib.so
+	g++ main.cpp -g -o $(DEBUG).debug $(DEPS) $(DEP_FILES) $(ROOT_GLIBS) $(ROOT_CFLAGS) libRootLib.so
+
+
+all: $(NAME).out $(DEBUG).debug 
+.PHONY: all
+
+debug: $(DEBUG).debug
+.PHONY: debug
+
+.PHONY: clean
+
+clean: 
+    rm $(NAME).out $(DEBUG).debug</code></pre>
+
+
+        </div>
     </body>
 </html>
